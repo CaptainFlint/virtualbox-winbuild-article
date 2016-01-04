@@ -1,0 +1,445 @@
+﻿http://geektimes.ru/topic/add/
+
+Хабы: Open Source
+
+Заголовок: Собираем VirtualBox под Windows
+
+<a href=""><img align="center" src="https://habrastorage.org/files/ca8/0bd/c19/ca80bdc19d6a4618ab6640703ece00fc.png"/></a>
+<br/>
+<h4><img src="https://habrastorage.org/files/6c2/143/3ac/6c21433ac6b948bca4f8137075106b4b.png"/> Введение</h4>
+<br/>
+Как известно большинству пользователей Windows-версии VirtualBox (далее — <em>VB</em>, не путать с Visual Basic), в релизе 4.3.14 разработчики этой программы добавили дополнительный механизм защиты, называемый «hardening» (что можно перевести как «упрочнение»), который привёл к многочисленным проблемам совместимости VB с антивирусами, драйверами крипто-модулей и даже отдельными обновлениями самой Windows, в результате чего виртуальные машины попросту отказываются запускаться. В лучшем случае пользователю приходится ждать около месяца, пока проблемная программа, о которой он сообщит разработчикам, окажется учтена в следующем релизе VB. В худшем случае придётся либо удалять программу (или системное обновление), либо откатывать VB до версии 4.3.12 — последней, в которой не было этой защиты. Многочисленные предложения к разработчикам о добавлении пользовательского списка исключений или опции, отключающей защиту целиком, остаются без последствий. Единственный внятный ответ с их стороны звучит так: «не хотите защиту — компилируйте из исходников сами». Что ж, придётся этим заняться.<br/>
+<br/>
+Несмотря на то, что процедура сборки <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">описана</a> на официальной вики, она неполна и кое в чём устарела, а сама сборка так и норовит выдать странные ошибки. Поэтому когда я всё-таки пробился до конца сей процедуры, я решил, что её описание заслуживает отдельной статьи. Инструкция составлялась и проверялась на VB 5.0.12.<br/>
+<cut text="Я заинтересован" /><br/>
+<h4><img src="https://habrastorage.org/files/6c2/143/3ac/6c21433ac6b948bca4f8137075106b4b.png"/> Содержание</h4>
+<blockquote>
+» <a href="#task">Постановка задачи</a><br/>
+» <a href="#warnings">Пара предупреждений</a><br/>
+» <a href="#environment">Готовим окружение</a><br/>
+» <a href="#environment-inst">Особенности установки программ</a><br/>
+» <a href="#final-touches">Последние штрихи</a><br/>
+» <a href="#build-vb">Собираем VirtualBox</a><br/>
+» <a href="#afterword">Послесловие</a><br/>
+</blockquote>
+<br/>
+
+<anchor>task</anchor><h4><img src="https://habrastorage.org/files/6c2/143/3ac/6c21433ac6b948bca4f8137075106b4b.png"/> Постановка задачи</h4><br/>
+Изначально я планировал упростить себе задачу и обойтись минимальной пересборкой, чтобы потом устанавливать официальный дистрибутив и просто подменять в нём бинарные файлы. Однако оказалось, что такой подход не сработает, поскольку не учитывает использование системных механизмов установки и регистрации драйверов и COM-компонентов. Можно было бы попытаться разобраться в деталях и написать автоматизирующий скрипт, но я решил замахнуться на более крупную дичь: самостоятельно собрать полноценный дистрибутив, максимально близкий к официальному, и отличающийся от него только отсутствием hardening'а.<br/>
+<br/>
+Забегая вперёд, скажу, что на 100% задачу решить не удалось. Слабым звеном оказались гостевые дополнения, которые в официальном пакете собраны под Windows (32- и 64-битную), Linux, Solaris и OS/2. В комментариях соответствующего Makefile указано, что сборка осуществляется удалённо на разных машинах, а настраивать такой комплект виртуалок мне не улыбалось. В итоге я решил просто использовать готовый ISO-образ дополнений, который можно скачать с сервера Oracle. Всё остальное — бинарники, документация, инсталлятор — будет собираться из исходных файлов.<br/>
+<br/>
+<anchor>warnings</anchor><h4><img src="https://habrastorage.org/files/6c2/143/3ac/6c21433ac6b948bca4f8137075106b4b.png"/> Пара предупреждений</h4><br/>
+<h5>• Проблемы безопасности</h5><br/>
+Про hardening известно, что добавили его не просто так. Внятно рассказать о сути уязвимости Oracle категорически отказывается, несмотря на то, что с момента фикса прошло почти полтора года. Ограничиваются лишь намёками на «очень уязвимую архитектуру Windows, разрешающую загрузку сторонних модулей в чужие процессы». Вопрос о том, как же без подобных ухищрений умудряются работать другие системы виртуализации (да и вообще все программы), также остаётся без ответа. Из отдельных скупых фраз на официальном форуме удалось выудить информацию, что проблема связана с повышением привилегий на хостовой машине, и что для этой уязвимости VB есть реально использующиеся эксплойты. Если это вас не пугает, можете продолжать чтение, я вас предупредил.<br/>
+<br/>
+<h5>• Подписывание драйверов</h5><br/>
+Как известно, 64-битная Windows в обычном режиме запрещает загрузку драйверов, не подписанных сертификатом с цепочкой доверия, ведущей до корневого сертификата Microsoft (а в Windows 10 предпринимаются шаги к запрету вообще всех драйверы, подписанных не в Microsoft). Поэтому прежде чем компилировать VB даже для личного использования, необходимо продумать решение этой проблемы: либо купить сертификат, либо попробовать воспользоваться сервисами подписи драйверов для разработчиков Open Source (если они, конечно, согласятся подписывать заведомо уязвимый драйвер), либо перевести свою Windows в тестовый режим и использовать самоподписанный тестовый сертификат.<br/>
+<br/>
+Далее я буду ориентироваться на этот последний вариант, но в отдельных местах укажу, как поменяется процедура при наличии полноценного сертификата.<br/>
+<br/>
+<anchor>environment</anchor><h4><img src="https://habrastorage.org/files/6c2/143/3ac/6c21433ac6b948bca4f8137075106b4b.png"/> Готовим окружение</h4><br/>
+В качестве сборочной системы у меня используется Windows 7 SP1 x64. Думаю, что с более современными версиями проблем возникнуть не должно, но не проверял.<br/>
+<br/>
+Для создания необходимого окружения потребуется немаленький набор программ. Если для программы присутствует портабельная версия, я использую её, а не инсталлятор.<br/>
+<br/>
+Следующий набор программ поставляется в виде инсталляторов. Для Visual Studio и SDK/WDK важно соблюдать порядок установки, как указано ниже. После установки крайне желательно установить обновления через Windows Update с включённой опцией поддержки всех продуктов Microsoft.<br/>
+<ul>
+<li><b>Visual Studio 2010 Professional</b><br/>Для полноценной сборки требуется именно Professional. В версии 2010 Express нет библиотеки ATL, необходимой для сборки COM API, через который работают фронт-энды. Я сделал несколько попыток перенести проект на VS 2013 или 2015 Community Edition, чтобы избавиться от необходимости платной лицензии, но, увы, безуспешно.</li>
+<li><b><a href="http://www.microsoft.com/en-us/download/details.aspx?id=8279">Windows Platform SDK v7.1</a></b></li>
+<li><b><a href="https://www.microsoft.com/en-US/download/details.aspx?id=23691">Visual Studio 2010 SP1</a></b></li>
+<li><b><a href="https://www.microsoft.com/en-us/download/details.aspx?id=4422">Visual C++ 2010 SP1 Compiler Update for SDK 7.1</a></b></li>
+<li><b><a href="http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=11800">Windows Driver Development Kit (WDK) v7.1</a></b></li>
+<li><b><a href="http://www.activestate.com/activeperl/downloads">ActivePerl</a></b></li>
+<li><b><a href="http://www.activestate.com/activepython/downloads">ActivePython 2.7</a></b></li>
+<li><b><a href="http://wixtoolset.org/">WiX</a></b></li>
+</ul>
+<br/>
+Остальные программы скачиваются в виде архивов или исходных кодов:<br/>
+<ul>
+<li><b><a href="http://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.zip">Qt 4.8.7</a></b> (исходные коды)</li>
+<li><b>MinGW 3.3.3</b> (32-битная версия):
+  <ul>
+    <li><b><a href="http://prdownloads.sf.net/mingw/gcc-core-3.3.3-20040217-1.tar.gz?download">MinGW GCC</a></b></li>
+    <li><b><a href="http://prdownloads.sf.net/mingw/gcc-g++-3.3.3-20040217-1.tar.gz?download">GCC-C++</a></b></li>
+    <li><b><a href="http://prdownloads.sf.net/mingw/mingw-runtime-3.8.tar.gz?download">Runtime</a></b></li>
+    <li><b><a href="http://prdownloads.sf.net/mingw/w32api-3.5.tar.gz?download">W32API</a></b></li>
+    <li><b><a href="http://prdownloads.sf.net/mingw/binutils-2.13.90-20021006-2.tar.gz?download">Binutils</a></b></li>
+  </ul>
+</li>
+<li><b>MinGW-w64 4.5.4</b> (64-битная версия):
+  <ul>
+    <li><b><a href="http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/rubenvb/gcc-4.5-release/x86_64-w64-mingw32-gcc-4.5.4-release-win64_rubenvb.7z/download">GCC</a></b></li>
+  </ul>
+</li>
+<li><b><a href="http://www.libsdl.org/download-1.2.php">SDL v1.2.x</a></b> (development-пакет для Visual C++)</li>
+<li><b><a href="http://curl.haxx.se/download.html">cURL</a></b> (исходные коды)</li>
+<li><b><a href="http://www.openssl.org/related/binaries.html">OpenSSL 1.0.2</a></b> (исходные коды)</li>
+<li><b><a href="http://sourceforge.net/projects/gsoap2/files/gSOAP/">gSOAP 2.7.x</a></b></li>
+<li><b><a href="http://miktex.org/portable">MiKTeX Portable</a></b></li>
+<li><b><a href="http://gnuwin32.sourceforge.net/packages/wget.htm">wget</a></b><br/>Требуются два архива: Binaries и Dependencies.</li>
+</ul>
+<br/>
+<spoiler title="Зачем оно всё?">
+Если вы не собираетесь собирать такой же пакет, как я, то некоторые из перечисленных инструментов могут вам не потребоваться. Здесь я вкратце перечислю, какую роль они выполняют.<br/>
+<br/>
+<ul>
+<li>WiX<br/>
+Это инструмент для создания MSI-инсталляторов. Хоть финальный вариант инсталлятора и является EXE-файлом, внутри он содержит два MSI, так что WiX тут необходим. Если вам достаточно простой компиляции проекта, то этот пакет не потребуется.
+</li>
+<li>SDL<br/>
+На этой библиотеке основан фронт-энд VBoxSDL — минималистичная альтернатива стандартной оболочке VirtualBox.exe. Возможно, если вам не требуется VBoxSDL, библиотеку SDL можно не устанавливать, но я это не проверял.
+</li>
+<li>gSOAP<br/>
+Этот компонент необходим для сборки сервиса удалённого управления VB: VBoxWebSrv.exe. Отсутствие gSOAP не является критической ошибкой, VB успешно соберётся без этого сервиса.
+</li>
+<li>MiKTeX<br/>
+При помощи MiKTeX компилируется справочник в формате PDF (doc\UserManual.pdf). Отсутствие MiKTeX не является критической ошибкой, VB успешно соберётся без PDF-документации.
+</li>
+<li>wget<br/>
+wget или его альтернатива потребуется для скачивания ISO-образа гостевых дополнений. Этих команд изначально нет в проекте VB, они добавляются вручную в kmk-файл (см. ниже). Если вам не нужны гостевые дополнения в дистрибутиве, можно обойтись без wget, но тогда нужно будет учесть это при модификации сборочных правил. Альтернативой может работать cURL, исходники которого уже участвуют в процессе сборки. Но в текущем варианте сам curl.exe не собирается, только библиотека libcurl, так что для использования curl потребуется сначала его самостоятельно собрать (или скачать уже скомпилированный кем-то вариант).
+</li>
+</ul>
+</spoiler>
+<br/>
+Чтобы легче было отслеживать потенциальные источники проблем сборки, привожу здесь сводную таблицу всех инструментов с их версиями и путями установки. Обозначение «{x32|x64}» указывает, что пакет устанавливается в два разных каталога для 32- и 64-битной версии.
+<table>
+<tr><th>Программа</th><th>Версия</th><th>Путь установки</th></tr>
+<tr><td>Visual Studio</td><td>2010 Professional</td><td>C:\Program Files (x86)\Microsoft Visual Studio 10.0\</td></tr>
+<tr><td>SDK</td><td>7.1</td><td>C:\Program Files\Microsoft SDKs\Windows\v7.1\</td></tr>
+<tr><td>WDK</td><td>7.1.0</td><td>C:\WinDDK\7600.16385.1\</td></tr>
+<tr><td>ActivePerl</td><td>5.22.0 Build 2200 x64</td><td>C:\Programs\Perl\</td></tr>
+<tr><td>ActivePython</td><td>2.7.10.12 x64</td><td>C:\Programs\Python\</td></tr>
+<tr><td>WiX</td><td>3.10.1.2213</td><td>C:\Program Files (x86)\WiX Toolset v3.10\</td></tr>
+<tr><td>Qt</td><td>4.8.7</td><td>C:\Programs\Qt\4.8.7-{x32|x64}\</td></tr>
+<tr><td>MinGW</td><td>3.3.3-20040217-1</td><td>C:\Programs\mingw32\</td></tr>
+<tr><td>MinGW Runtime</td><td>3.8</td><td>C:\Programs\mingw32\</td></tr>
+<tr><td>MinGW W32API</td><td>3.5</td><td>C:\Programs\mingw32\</td></tr>
+<tr><td>MinGW Binutils</td><td>2.13.90-20021006-2</td><td>C:\Programs\mingw32\</td></tr>
+<tr><td>MinGW-w64</td><td>4.5.4</td><td>C:\Programs\mingw64\</td></tr>
+<tr><td>SDL</td><td>1.2.15</td><td>C:\Programs\SDL\{x32|x64}\</td></tr>
+<tr><td>cURL</td><td>7.46.0</td><td>C:\Programs\curl\{x32|x64}\</td></tr>
+<tr><td>OpenSSL</td><td>1.0.2e</td><td>C:\Programs\OpenSSL\{x32|x64}\</td></tr>
+<tr><td>gSOAP</td><td>2.7.16</td><td>C:\Programs\gSOAP\</td></tr>
+<tr><td>MiKTeX Portable</td><td>2.9.5719</td><td>C:\Programs\MiKTeX Portable\</td></tr>
+<tr><td>wget</td><td>1.11.4.1</td><td>C:\Programs\wget\</td></tr>
+</table>
+
+<anchor>environment-inst</anchor><h4><img src="https://habrastorage.org/files/6c2/143/3ac/6c21433ac6b948bca4f8137075106b4b.png"/> Особенности установки программ</h4><br/>
+В этом разделе я привожу указания или инструкции для отдельных пакетов, где процедура неочевидна или требует дополнительных шагов.<br/>
+<br/>
+<h5>• Windows Platform SDK v7.1</h5>
+При установке могут возникнуть проблемы из-за устаревших версий компиляторов и рантайма: они не могут установиться поверх более новых версий, установленных с VS 2010, и инсталлятор считает это критической ошибкой. Необходимо либо отключить соответствующие галочки, либо предварительно удалить из системы пакеты с именами вида <i>«Microsoft Visual C++ 2010 &lt;arch&gt; Redistributable»</i>, <i>«Microsoft Visual C++ 2010 &lt;arch&gt; Runtime»</i>, <i>«Microsoft Visual C++ Compilers…»</i> (SDK установит старые версии пакетов, а Windows Update потом обновит их до актуальных).<br/>
+<br/>
+Также обратите внимание, что для финальной сборки MSI-пакетов потребуется установить примеры программ (Windows Native Code Development -&gt; Samples): в их составе идут скрипты, использующиеся сборочными правилами.<br/>
+<br/>
+<h5>• WDK v7.1</h5>
+Достаточно установить только сборочные окружения (Build Environments).<br/>
+<br/>
+<h5>• Qt</h5>
+Поскольку официальных сборок Qt для 64-битной Windows нет, то собирать её придётся вручную. Также я рекомендую собрать из исходников и 32-битную версию: для удобства и единства интерфейса.<br/>
+<br/>
+<ol>
+<li>Распаковываем архив с исходным кодом Qt в каталог C:\Programs\Qt\ и переименовываем полученный подкаталог qt-everywhere-opensource-src-4.8.7 в 4.8.7-src (для красоты и краткости).</li>
+<li>Рядом создаём два каталога: build-x32 (в нём будет происходить сборка) и 4.8.7-x32 (сюда будут установлены итоговые бинарники).</li>
+<li>Копируем подкаталог 4.8.7-src\mkspecs со всем содержимым в 4.8.7-x32\.</li>
+<li>
+Открываем консоль, выполняем следующие команды:
+<source lang=".bat">SET QTVER=4.8.7
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+SET QTDIR=C:\Programs\Qt\%QTVER%-x32
+SET PATH=%QTDIR%\bin;%PATH%
+SET QMAKESPEC=win32-msvc2010</source>
+Если не нравится зелёный цвет шрифта, установленный командой SetEnv.Cmd, можно сбросить его командой <b>color</b> без параметров.
+</li>
+<li>
+Теперь запускаем configure.exe из каталога 4.8.7-src. Можно конфигурировать по умолчанию, но я предпочитаю бо́льшую часть опций указывать явным образом, а ненужные модули отключать совсем, чтобы ускорить компиляцию. Вот команда, которую я использовал у себя:
+<source lang=".bat">..\4.8.7-src\configure.exe -prefix C:\Programs\Qt\4.8.7-x32 -opensource -confirm-license -release -shared -no-ltcg -no-fast -exceptions -no-dsp -accessibility -stl -no-sql-sqlite -no-qt3support -opengl desktop -no-nis -no-inotify -largefile -little-endian -no-fontconfig -no-system-proxies -graphicssystem raster -qt-zlib -qt-libpng -qt-libmng -qt-libtiff -qt-libjpeg -no-openssl -no-dbus -no-phonon -no-phonon-backend -no-multimedia -no-audio-backend -no-webkit -no-script -no-scripttools -no-declarative -no-declarative-debug -no-directwrite -no-style-plastique -no-style-motif -no-style-cde -no-style-windowsce -no-style-windowsmobile -no-style-s60 -native-gestures -mp -nomake examples -nomake demos -nomake tests</source>
+</li>
+<li>Когда программа отработает, запускаем сборку командой <b>nmake</b></li>
+<li>Ну и, наконец, устанавливаем скомпилированную библиотеку командой <b>nmake install</b></li>
+</ol>
+<br/>
+Теперь открываем новую консоль и аналогичным образом компилируем и устанавливаем 64-битную версию, только в именах каталогов необходимо заменить «x32» на «x64», а команды создания окружения будут выглядеть так:
+<source lang=".bat">SET QTVER=4.8.7
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+SET QTDIR=C:\Programs\Qt\%QTVER%-x64
+SET PATH=%QTDIR%\bin;%PATH%
+SET QMAKESPEC=win32-msvc2010</source>
+<br/>
+После этого можно удалять каталоги build-x32, build-x64 и 4.8.7-src, чтобы не занимали место: они нам больше не понадобятся.<br/>
+<br/>
+<h5>• MinGW</h5>
+Для установки 32-битной MinGW просто последовательно распакуйте все пять архивов в целевой каталог. Совпадающие файлы перезаписываются.<br/>
+<br/>
+MinGW-w64 состоит из одного архива и распаковывается в отдельный каталог.<br/>
+<br/>
+<h5>• SDL</h5>
+<ol>
+<li>Распаковываем SDL два раза в отдельные каталоги: C:\Programs\SDL\x32\ и C:\Programs\SDL\x64\.</li>
+<li>Перемещаем всё содержимое C:\Programs\SDL\x64\lib\x64\ на уровень выше (в C:\Programs\SDL\x64\lib\), каталог C:\Programs\SDL\x64\lib\x86 удаляем.</li>
+<li>Аналогично для 32-битной версии: перемещаем содержимое C:\Programs\SDL\x32\lib\x86\ на уровень выше, каталог C:\Programs\SDL\x64\lib\x64 удаляем.</li>
+</ol>
+<br/>
+<h5>• cURL</h5>
+<ol>
+<li>Распаковываем архив cURL в каталог: C:\Programs\curl\, переименовываем получившийся подкаталог из curl-7.46.0 в curl-7.46.0-x32.</li>
+<li>
+Открываем в редакторе файл C:\Programs\curl\curl-7.46.0-x32\lib\Makefile.vc10, находим там в районе строки 121 следующий код:
+<source>CFLAGS       = $(CFLAGS)</source>
+и добавляем после него:
+<source>CFLAGS = $(CFLAGS) /DCURL_DISABLE_LDAP</source>
+Если этого не сделать, то при сборке VB полезут ошибки линковки.
+</li>
+<li>Делаем копию каталога curl-7.46.0-x32 под именем curl-7.46.0-x64.</li>
+<li>Открываем консоль, собираем 32-битную версию библиотеки (сам curl не потребуется) и копируем необходимые файлы в целевой каталог:
+<source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+cd /d C:\Programs\curl\curl-7.46.0-x32\lib
+md C:\Programs\curl\x32
+nmake /f Makefile.vc10 cfg=release-dll
+nmake /f Makefile.vc10 cfg=release
+copy *.dll ..\..\x32
+copy *.lib ..\..\x32
+xcopy /E ..\include ..\..\x32</source>
+</li>
+<li>
+Собираем 64-битную версию, открыв новую консоль и выполнив команды:
+<source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+cd /d C:\Programs\curl\curl-7.46.0-x64\lib
+md C:\Programs\curl\x64
+nmake /f Makefile.vc10 MACHINE=x64 cfg=release-dll
+nmake /f Makefile.vc10 MACHINE=x64 cfg=release
+copy *.dll ..\..\x64
+copy *.lib ..\..\x64
+xcopy /E ..\include ..\..\x64</source>
+</li>
+<li>Каталоги C:\Programs\curl\curl-7.46.0-x32 и curl-7.46.0-x64 можно удалять.</li>
+</ol>
+<br/>
+<h5>• OpenSSL</h5>
+<ol>
+<li>Распаковываем архив OpenSSL два раза в каталог C:\Programs\OpenSSL\, переименовывая полученный подкаталог из openssl-1.0.2e, соответственно, в openssl-1.0.2e-x32 и openssl-1.0.2e-x64.</li>
+<li>Открываем консоль, собираем и устанавливаем 32-битную версию:
+<source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+cd /d C:\Programs\OpenSSL\openssl-1.0.2e-x32\
+perl Configure VC-WIN32 no-asm --prefix=C:\Programs\OpenSSL\x32
+ms\do_ms
+nmake -f ms\ntdll.mak
+nmake -f ms\ntdll.mak install</source>
+</li>
+<li>
+Открываем новую консоль, собираем и устанавливаем 64-битную версию:
+<source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+cd /d C:\Programs\OpenSSL\openssl-1.0.2e-x64\
+perl Configure VC-WIN64A --prefix=C:\Programs\OpenSSL\x64
+ms\do_win64a
+nmake -f ms\ntdll.mak
+nmake -f ms\ntdll.mak install</source>
+</li>
+<li>Каталоги C:\Programs\OpenSSL\openssl-1.0.2e-x32 и openssl-1.0.2e-x64 можно удалять.</li>
+</ol>
+<br/>
+<h5>• gSOAP</h5>
+<ol>
+<li>Открываем архив, заходим в подкаталог gsoap-2.7\gsoap и распаковываем содержимое этого подкаталога в C:\Programs\gSOAP\.</li>
+<li>
+Открываем на редактирование файл C:\Programs\gSOAP\stdsoap2.cpp, ищем там следующий код (строка 4001):
+<source lang="cpp">            { X509V3_EXT_METHOD *meth = X509V3_EXT_get(ext);</source>
+и добавляем к определению переменной const, чтобы получилось так:
+<source lang="cpp">            { const X509V3_EXT_METHOD *meth = X509V3_EXT_get(ext);</source>
+X509V3_EXT_get() — это функция из OpenSSL, она возвращает константный указатель, так что без этой правки сборка завершится ошибкой приведения типа.
+</li>
+</ol>
+<br/>
+<h5>• MiKTeX</h5>
+<ol>
+<li>Распаковываем архив в C:\Programs\MiKTeX\</li>
+<li>
+Открываем консоль и запускаем установку дополнительных модулей:
+<source lang=".bat">"C:\Programs\MiKTeX\miktex\bin\mpm.exe" --verbose --install=koma-script --install=ucs --install=tabulary --install=url --install=fancybox --install=fancyvrb --install=bera --install=charter --install=mptopdf</source>
+</li>
+</ol>
+<br/>
+<h5>• wget</h5>
+Просто распаковываем архивы wget-1.11.4-1-bin.zip и wget-1.11.4-1-dep.zip в C:\Programs\wget\<br/>
+<br/>
+
+<anchor>final-touches</anchor><h4><img src="https://habrastorage.org/files/6c2/143/3ac/6c21433ac6b948bca4f8137075106b4b.png"/> Последние штрихи</h4>
+<br/>
+Подготовка к сборке почти завершена, остались несколько шагов. Если вы этого ещё не сделали, нужно скачать архив с исходными кодами VirtualBox нужной версии и распаковать его в удобное место. В качестве рабочего каталога я выбрал C:\Devel\VirtualBox-5.0.12\ (повторюсь, данная инструкция проверена только на <a href="http://download.virtualbox.org/virtualbox/5.0.12/VirtualBox-5.0.12.tar.bz2">5.0.12</a>).<br/>
+<br/>
+<h5>• Добавление сертификата</h5>
+Если у вас нет полноценного сертификата, то рекомендуется создать хотя бы персональный (с ним проще загружать драйверы, чем совсем без подписи). Для этого нужно открыть консоль с повышенными привилегиями и выполнить в ней следующие команды:
+<source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+makecert.exe -r -pe -ss my -n "CN=Roga and Kopyta Ltd" C:\Devel\testcert.cer
+certmgr.exe -add C:\Devel\testcert.cer -s -r localMachine root</source>
+Название сертификата («Roga and Kopyta Ltd») и путь к файлу сертификата можно выбирать по своему усмотрению.<br/>
+<br/>
+<h5>• Сборка xmllint</h5>
+На одном из этапов потребуется также программа xmllint. Я не указывал её в списке требований, потому что необходимые исходники уже присутствуют в архиве VB. Сборочные правила не рассчитаны на автоматическую сборку этой утилиты, поэтому её придётся собрать отдельно. В качестве целевого каталога я выбрал C:\Programs\xmllint.
+<ol>
+<li>Копируем содержимое каталога C:\Devel\VirtualBox-5.0.12\src\libs\libxml2-2.9.2 в C:\Programs\libxml2-2.9.2\ (это необходимо, чтобы промежуточные объектные файлы не мешали сборке самого VB).</li>
+<li>Открываем консоль и выполняем команды:
+<source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+cd /d C:\Programs\libxml2-2.9.2\win32
+cscript.exe configure.js cruntime=/MT prefix=C:\Programs\xmllint iconv=no
+nmake /f Makefile.msvc
+nmake /f Makefile.msvc install</source>
+</li>
+<li>Удаляем каталог C:\Programs\libxml2-2.9.2.</li>
+</ol>
+<br/>
+<h5>• Различные правки VB</h5>
+В проекте VirtualBox есть несколько несообразностей, которые необходимо подправить, прежде чем приступать к сборке. Так что переходим в каталог C:\Devel\VirtualBox-5.0.12 и начинаем:
+<ol>
+<li>
+Открываем файл configure.vbs, находим код (строка 1062):
+<source lang="vbscript">if Shell(DosSlashes(strPathVC & "/bin/cl.exe"), True) <> 0 then</source>
+и заменяем на следующий:
+<source lang="vbscript">if Shell(DosSlashes(strPathVC & "/bin/cl.exe") & " /?", True) <> 0 then</source>
+Этот кусок отвечает за поиск и проверку компилятора, но не учитывает, что вызов cl.exe без аргументов возвращает код ошибки (что трактуется как неподходящий компилятор). Добавление параметра «/?» запрашивает вывод справки, и код возврата перестаёт быть ошибочным.
+</li>
+<li>
+Открываем файл Makefile.kmk и где-нибудь за пределами условных блоков добавляем следующий код (я добавил в строке 142, перед комментарием «Install our Qt DLLs…»):
+<source># OpenSSL DLLs
+ifeq ($(KBUILD_TARGET),win)
+ SDK_VBOX_OPENSSL_DLLS ?= $(subst .lib,.dll,$(subst /lib/,/bin/,$(SDK_VBOX_OPENSSL_LIBS)))
+ InstallExternalLibs_SOURCES += \
+ 	$(foreach sslmod,$(SDK_VBOX_OPENSSL_DLLS),$(call VBOX_RE_SIGN_DLL_FN,InstallExternalLibs,$(sslmod)))
+endif</source>
+При сборке VB в целевой каталог также копируются библиотеки-зависимости (такие как Qt, SDL). OpenSSL, видимо, в Oracle компилируется статически, а у нас он — динамический, поэтому здесь мы добавили копирование и подписывание соответствующих библиотек.
+</li>
+<li>
+Открываем файл src\recompiler\Makefile.kmk, в строке 120 находим следующий код:
+<source>VBoxRemPrimary_SOURCES.win = $(VBoxREMImp_0_OUTDIR)/VBoxREMRes.o</source>
+и заменяем на:
+<source>VBoxRemPrimary_SOURCES.win =
+VBoxRemPrimary_SOURCES.win.amd64 = $(VBoxREMImp_0_OUTDIR)/VBoxREMRes.o</source>
+Здесь используется MinGW, а при сборке 32-битной версии VB, как вы помните, у нас работает MinGW 3.3.3. Её компилятор ресурсов неправильно трактует переданные ему параметры, так что сборка падает. Этой заменой я отключаю использование (и, следовательно, компиляцию) ресурсного объектника для 32-битной версии.
+</li>
+<li>
+Открываем файл src\VBox\Installer\win\VBoxMergeApp.wxi, в строке 278 находим следующий код:
+<source lang="xml">        &lt;File Id="file_QtCoreVBox4.dll" Name="QtCoreVBox4.dll"
+              Source="$(env.PATH_OUT)\bin\QtCoreVBox4.dll" /&gt;
+        &lt;File Id="file_QtGuiVBox4.dll" Name="QtGuiVBox4.dll"
+              Source="$(env.PATH_OUT)\bin\QtGuiVBox4.dll" /&gt;</source>
+и удаляем из имён файлов подстроку «VBox», чтобы получилось:
+<source lang="xml">        &lt;File Id="file_QtCore4.dll" Name="QtCore4.dll"
+              Source="$(env.PATH_OUT)\bin\QtCore4.dll" /&gt;
+        &lt;File Id="file_QtGui4.dll" Name="QtGui4.dll"
+              Source="$(env.PATH_OUT)\bin\QtGui4.dll" /&gt;</source>
+Чуть ниже делаем аналогичную замену:
+<source lang="xml">        &lt;File Id="file_QtOpenGLVBox4.dll" Name="QtOpenGLVBox4.dll"
+              Source="$(env.PATH_OUT)\bin\QtOpenGLVBox4.dll" /&gt;</source>
+на:
+<source lang="xml">        &lt;File Id="file_QtOpenGL4.dll" Name="QtOpenGL4.dll"
+              Source="$(env.PATH_OUT)\bin\QtOpenGL4.dll" /&gt;</source>
+Здесь задаются правила для инсталлятора. Библиотека Qt для оригинального VB собирается с брэндированным суффиксом, так что итоговые библиотеки имеют имена вида QtCoreVBox4.dll. Мы же собирали библиотеку без таких суффиксов.<br/>
+<br/>
+В том же файле добавляем инструкции по упаковке OpenSSL-библиотек в дистрибутив, в любое место вне условных блоков (я добавил в строку 308, перед комментарием «EFI firmware»):
+<source lang="xml">        &lt;!-- OpenSSL DLL files --&gt;
+        &lt;File Id="file_ssleay32.dll" Name="ssleay32.dll"
+              Source="$(env.PATH_OUT)\bin\ssleay32.dll" /&gt;
+        &lt;File Id="file_libeay32.dll" Name="libeay32.dll"
+              Source="$(env.PATH_OUT)\bin\libeay32.dll" /&gt;</source>
+</li>
+<li>Открываем файл doc\manual\Makefile.kmk и удаляем оттуда все подстроки вида « --nonet». Этот аргумент у утилит обработки XML-файлов запрещает автоматическое скачивание DTD-схем, поэтому для успешной обработки требуется либо самостоятельно скачать все шаблоны, разместить их на локальном диске и прописать пути к ним в специальных переменных, либо отказаться от этого запрета, удалив параметр. Я пошёл по второму пути.</li>
+<li>
+Открываем файл src\VBox\Additions\Makefile.kmk, находим там правило для сборки ISO-образа гостевых дополнений (строки 303–340). Удаляем весь этот блок, вместо него вставляем единственную команду для загрузки официального образа:
+<source>$(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso:
+	$(TOOL_WGET_FETCH) http://download.virtualbox.org/virtualbox/$(VBOX_VERSION_STRING_RAW)/VBoxGuestAdditions_$(VBOX_VERSION_STRING_RAW).iso -O $@</source>
+</li>
+<li>
+Это изменение опционально. По умолчанию собранный VB будет иметь суффикс «OSE» в номере версии («5.0.12_OSE»). Если вас это не устраивает, можно поменять суффикс в файле Config.kmk в строке 1239, заменив код
+<source> VBOX_BUILD_PUBLISHER = _OSE</source>
+на:
+<source> VBOX_BUILD_PUBLISHER =</source>
+или на любую другую строку, которая вам подходит. Теоретически, этот параметр должен переопределяться локальным конфигом (см. следующий пункт), но для корректной сборки приходится менять именно здесь.
+</li>
+<li>
+Ну и, наконец, создаём в корне рабочего каталога файл с именем LocalConfig.kmk, в который прописываем следующее содержимое:
+<source>VBOX_WITH_HARDENING :=
+SDK_VBOX_OPENSSL-x86_INCS := C:\Programs\OpenSSL\x32\include
+SDK_VBOX_OPENSSL-x86_LIBS := C:\Programs\OpenSSL\x32\lib\ssleay32.lib C:\Programs\OpenSSL\x32\lib\libeay32.lib
+SDK_VBOX_LIBCURL-x86_INCS := C:\Programs\curl\x32\include
+SDK_VBOX_LIBCURL-x86_LIBS := C:\Programs\curl\x32\libcurl.lib
+SDK_VBOX_LIBCURL-x86_LIBS.x86 := C:\Programs\curl\x32\libcurl.lib
+# 8.3 path for C:\Program Files (x86)\WiX Toolset v3.10\bin
+VBOX_PATH_WIX := C:\PROGRA~2\WIXTOO~1.10\bin
+VBOX_GSOAP_INSTALLED := 1
+VBOX_PATH_GSOAP := C:\Programs\gSOAP
+VBOX_WITH_COMBINED_PACKAGE := 1
+VBOX_WITH_QT4_PAYLOAD := 1
+VBOX_SIGNING_MODE := release
+VBOX_CERTIFICATE_SUBJECT_NAME := Roga and Kopyta Ltd
+VBOX_CROSS_CERTIFICATE_FILE_ARGS :=
+VBOX_SIGNTOOL := C:\WinDDK\7600.16385.1\bin\amd64\SignTool.exe
+VBOX_INF2CAT := C:\WinDDK\7600.16385.1\bin\selfsign\Inf2Cat.exe
+VBOX_PATH_WISUMINFO := "C:\Program Files\Microsoft SDKs\Windows\v7.1\Samples\sysmgmt\msi\scripts\WiSumInf.vbs"
+VBOX_WITH_DOCS := 1
+VBOX_WITH_DOCS_CHM := 1
+VBOX_WITH_DOCS_PACKING := 1
+VBOX_HAVE_XMLLINT := C:\Programs\xmllint\bin\xmllint.exe
+VBOX_PATH_DOCBOOK_DTD := http://www.oasis-open.org/docbook/xml/4.4/
+VBOX_PATH_HTML_HELP_WORKSHOP := "C:\Program Files (x86)\HTML Help Workshop"
+VBOX_PDFLATEX := C:\Programs\MiKTeX\miktex\bin\pdflatex.exe
+VBOX_PDFLATEX_CMD := $(VBOX_PDFLATEX) -halt-on-error -interaction batchmode
+TOOL_WGET_FETCH := C:\Programs\wget\bin\wget.exe</source>
+Главная строка, ради которой всё и затевалось, идёт здесь первой: отключаем hardening. В переменной VBOX_CERTIFICATE_SUBJECT_NAME потребуется указать имя сертификата, который вы создавали ранее. Если у вас не самоподписанный сертификат, а покупной, то здесь указываете его имя, а в переменной VBOX_CROSS_CERTIFICATE_FILE прописываете полный путь к файлу кросс-сертификата (без него драйверы не будут считаться подписанными).<br/>
+<br/>
+Остальное — разнообразные параметры, включающие те или иные компоненты сборки, задающие пути к внешним инструментам и аргументы их запуска. Обратите внимание, что если путь установки WiX содержит пробелы, то необходимо преобразовать его в короткий. Обязательно проверьте, чему он равен на вашей системе (даже для одинаковых длинных имён он может оказаться различным). Для этого можно воспользоваться командой <b>dir /x</b>. Трюк с взятием в кавычки здесь, увы, не работает.
+</li>
+</ol>
+<br/>
+
+<anchor>build-vb</anchor><h4><img src="https://habrastorage.org/files/6c2/143/3ac/6c21433ac6b948bca4f8137075106b4b.png"/> Собираем VirtualBox</h4><br/>
+Ну вот, теперь, наконец, можно и приступать к сборке собственно VirtualBox. Если вы любите параллельную сборку, то придётся от этой привычки временно отказаться (или собирать в двух копиях дерева исходных кодов): здесь используется общий файл конфигурации, который нужно перегенерировать перед началом сборки. И если во время 64-битной компиляции в нём неожиданно окажутся пути к 32-битным библиотекам, компилятору это очень не понравится.<br/>
+<ol>
+<li>
+Открываем консоль, выполняем команды:
+<source lang=".bat">cd /d C:\Devel\VirtualBox-5.0.12
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+set BUILD_TARGET_ARCH=amd64
+set INCLUDE=C:\Programs\curl\x64\include;%INCLUDE%
+set LIB=C:\Programs\curl\x64;%LIB%
+set LIBPATH=C:\Programs\curl\x64;%LIBPATH%
+set PATH=C:\Programs\Qt\4.8.7-x64\bin;%PATH%
+set QMAKESPEC=win32-msvc2010
+cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-libcurl=C:\Programs\curl\x64 --with-Qt4=C:\Programs\Qt\4.8.7-x64 --with-python=C:\Programs\Python
+env.bat
+kmk
+kmk C:/Devel/VirtualBox-5.0.12/out/win.x86/release/obj/Installer/VirtualBox-5.0.12_OSE-r104815-MultiArch_amd64.msi</source>
+Скрипт configure.vbs проверяет окружение и создаёт файлы конфигурации. Первый запуск kmk выполняет сборку бинарных компонентов и помещает их в каталог out\win.amd64\bin\. Второй вызов kmk собирает из этих компонентов промежуточный MSI-архив. Важные моменты:
+<ul>
+<li>Слэши в последней команде должны быть обязательно прямыми. С обратными kmk не найдёт сборочные правила.</li>
+<li>Хоть мы собираем 64-битную версию, архив располагается в подкаталоге out\win.x86\…, потому что финальная сборка будет производиться из 32-битного окружения.</li>
+<li>Если вы меняли суффикс версии, то «_OSE» в имени MSI-файла необходимо поправить на то, что вы задали в переменной VBOX_BUILD_PUBLISHER.</li>
+</ul>
+</li>
+<li>
+Открываем новую консоль, выполняем команды:
+<source lang=".bat">cd /d C:\Devel\VirtualBox-5.0.12
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+set BUILD_TARGET_ARCH=x86
+set INCLUDE=C:\Programs\curl\x32\include;%INCLUDE%
+set LIB=C:\Programs\curl\x32;%LIB%
+set LIBPATH=C:\Programs\curl\x32;%LIBPATH%
+set PATH=C:\Programs\Qt\4.8.7-x32\bin;%PATH%
+set QMAKESPEC=win32-msvc2010
+cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt4=C:\Programs\Qt\4.8.7-x32 --with-python=C:\Programs\Python
+env.bat
+kmk
+kmk C:/Devel/VirtualBox-5.0.12/out/win.x86/release/bin/VirtualBox-5.0.12_OSE-r104815-MultiArch.exe</source>
+Аналогично, суффикс «_OSE» в имени итогового файла надо поменять на свой.
+</li>
+</ol>
+<br/>
+Если ни я, ни вы ничего не перепутали, то после всех этих перипетий у вас должен получиться инсталлятор VirtualBox, отличающийся от Oracle-версии только значком исполняемого файла, картинкой в диалоге «О программе» и, конечно же, отключённым hardening'ом. При желании значок и картинку тоже можно поменять, но это тема отдельного разговора…<br/>
+<br/>
+<anchor>afterword</anchor><h4><img src="https://habrastorage.org/files/6c2/143/3ac/6c21433ac6b948bca4f8137075106b4b.png"/> Послесловие</h4>
+<br/>
+Размер статьи оказался неожиданностью для меня самого. Когда я начинал её писать, то намеревался подробно рассказывать, почему на каждом этапе было выбрано то или иное решение, какие конкретно ошибки выскакивают, если не применить очередную правку, и какие могут быть альтернативные подходы к решению этих ошибок. Но постепенно понял, что если бы я всё это описывал, статья получилась бы и вовсе неприподъёмной. Поэтому прошу прощения за встречающийся кое-где стиль «делай так, а почему — не скажу». Сам недолюбливаю такие инструкции, но тут не видел иного выхода. Впрочем, в отдельных местах я всё-таки постарался хотя бы вкратце пояснить суть происходящего.<br/>
+<br/>
+Огромное количество аспектов сборочной системы VB осталось за кадром: как из-за нежелания раздувать текст, так и по причине моей лени, когда найдя какой-то обходной путь для очередной проблемы я не лез в глубины системы сборки, а поскорее переходил к следующему этапу. В конце концов, моей главной задачей было не найти оптимальный путь, а собрать, наконец, свой вариант продукта. Отдельные попытки компиляции проекта я начал совершать ещё в районе версии 4.3.16, когда стало очевидно, что hardening не будет заменён на что-то более разумное, а останется теперь с нами о-очень надолго.<br/>
+<br/>
+Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Если имеются вопросы, пожелания, предложения — велкам в комментарии. И да пребудет с вами Open Source!
