@@ -45,6 +45,7 @@
 <li><b><a href="https://www.microsoft.com/en-US/download/details.aspx?id=23691">Visual Studio 2010 SP1</a></b></li>
 <li><b><a href="https://www.microsoft.com/en-us/download/details.aspx?id=4422">Visual C++ 2010 SP1 Compiler Update for SDK 7.1</a></b></li>
 <li><b><a href="http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=11800">Windows Driver Development Kit (WDK) v7.1</a></b></li>
+<li><b><a href="https://dev.windows.com/downloads/windows-8-1-sdk">Windows SDK v8.1</a></b></li>
 <li><b><a href="http://www.activestate.com/activeperl/downloads">ActivePerl</a></b></li>
 <li><b><a href="http://www.activestate.com/activepython/downloads">ActivePython 2.7</a></b></li>
 <li><b><a href="http://wixtoolset.org/">WiX</a></b></li>
@@ -69,7 +70,7 @@
 </li>
 <li><b><a href="http://www.libsdl.org/download-1.2.php">SDL v1.2.x</a></b> (development-пакет для Visual C++)</li>
 <li><b><a href="http://curl.haxx.se/download.html">cURL</a></b> (исходные коды)</li>
-<li><b><a href="http://www.openssl.org/related/binaries.html">OpenSSL 1.0.2</a></b> (исходные коды)</li>
+<li><b><a href="http://www.openssl.org/source/">OpenSSL 1.0.2</a></b> (исходные коды)</li>
 <li><b><a href="http://sourceforge.net/projects/gsoap2/files/gSOAP/">gSOAP 2.7.x</a></b></li>
 <li><b><a href="http://miktex.org/portable">MiKTeX Portable</a></b></li>
 <li><b><a href="http://gnuwin32.sourceforge.net/packages/wget.htm">wget</a></b><br/>Требуются два архива: Binaries и Dependencies.</li>
@@ -79,6 +80,9 @@
 Если вы не планируете собирать такой же пакет, как я, то некоторые из перечисленных инструментов могут вам не потребоваться. Здесь я вкратце перечислю, какую роль они выполняют.<br/>
 <br/>
 <ul>
+<li>SDK 8.1<br/>
+Для сборки будет использоваться SDK версии 7.1, версия 8.1 требуется только для утилиты SignTool: в 7.1 отсутствует поддержка двойного подписывания SHA-1/SHA-256. Если вы не используете двойную подпись, можно ограничиться только SDK/WDK 7.1.
+</li>
 <li>WiX<br/>
 Это инструмент для создания MSI-инсталляторов. Хоть финальный вариант инсталлятора и является EXE-файлом, внутри он содержит два MSI, так что WiX тут необходим. Если вам достаточно простой компиляции бинарников, то этот пакет не понадобится.
 </li>
@@ -103,6 +107,7 @@ wget или его альтернатива будет использовать�
 <tr><td>Visual Studio</td><td>2010 Professional</td><td><code>C:\Program Files (x86)\Microsoft Visual Studio 10.0\</code></td></tr>
 <tr><td>SDK</td><td>7.1</td><td><code>C:\Program Files\Microsoft SDKs\Windows\v7.1\</code></td></tr>
 <tr><td>WDK</td><td>7.1.0</td><td><code>C:\WinDDK\7600.16385.1\</code></td></tr>
+<tr><td>WDK</td><td>10</td><td><code>C:\Program Files (x86)\Windows Kits\10\</code></td></tr>
 <tr><td>ActivePerl</td><td>5.22.0 Build 2200 x64</td><td><code>C:\Programs\Perl\</code></td></tr>
 <tr><td>ActivePython</td><td>2.7.10.12 x64</td><td><code>C:\Programs\Python\</code></td></tr>
 <tr><td>WiX</td><td>3.10.1.2213</td><td><code>C:\Program Files (x86)\WiX Toolset v3.10\</code></td></tr>
@@ -113,8 +118,8 @@ wget или его альтернатива будет использовать�
 <tr><td>MinGW Binutils</td><td>2.13.90-20021006-2</td><td><code>C:\Programs\mingw32\</code></td></tr>
 <tr><td>MinGW-w64</td><td>4.5.4</td><td><code>C:\Programs\mingw64\</code></td></tr>
 <tr><td>SDL</td><td>1.2.15</td><td><code>C:\Programs\SDL\{x32|x64}\</code></td></tr>
-<tr><td>cURL</td><td>7.46.0</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
-<tr><td>OpenSSL</td><td>1.0.2e</td><td><code>C:\Programs\OpenSSL\{x32|x64}\</code></td></tr>
+<tr><td>cURL</td><td>7.47.1</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
+<tr><td>OpenSSL</td><td>1.0.2g</td><td><code>C:\Programs\OpenSSL\{x32|x64}\</code></td></tr>
 <tr><td>gSOAP</td><td>2.7.16</td><td><code>C:\Programs\gSOAP\</code></td></tr>
 <tr><td>MiKTeX Portable</td><td>2.9.5719</td><td><code>C:\Programs\MiKTeX\</code></td></tr>
 <tr><td>wget</td><td>1.11.4.1</td><td><code>C:\Programs\wget\</code></td></tr>
@@ -128,6 +133,8 @@ wget или его альтернатива будет использовать�
 <br/>
 Также обратите внимание, что для финальной сборки MSI-пакетов потребуется установить примеры программ (Windows Native Code Development -&gt; Samples): в их составе идут скрипты, использующиеся сборочными правилами.<br/>
 <br/>
+SDK 8.1
+Only 'Windows Software development Kit'
 <h5>• WDK v7.1</h5>
 Достаточно установить только сборочные окружения (Build Environments).<br/>
 <br/>
@@ -178,18 +185,18 @@ MinGW-w64 состоит из одного архива и распаковыв�
 <br/>
 <h5>• cURL</h5>
 <ol>
-<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.46.0</code> в <code>curl-7.46.0-x32</code>.</li>
+<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.47.1</code> в <code>curl-7.47.1-x32</code>.</li>
 <li>
-Открываем в редакторе файл <code>C:\Programs\curl\curl-7.46.0-x32\lib\Makefile.vc10</code>, находим там в районе строки 121 следующий код:
+Открываем в редакторе файл <code>C:\Programs\curl\curl-7.47.1-x32\lib\Makefile.vc10</code>, находим там в районе строки 121 следующий код:
 <source>CFLAGS       = $(CFLAGS)</source>
 и добавляем после него:
 <source>CFLAGS = $(CFLAGS) /DCURL_DISABLE_LDAP</source>
 Если этого не сделать, то при сборке VB полезут ошибки линковки.
 </li>
-<li>Делаем копию каталога <code>curl-7.46.0-x32</code> под именем <code>curl-7.46.0-x64</code>.</li>
+<li>Делаем копию каталога <code>curl-7.47.1-x32</code> под именем <code>curl-7.47.1-x64</code>.</li>
 <li>Открываем консоль, собираем 32-битную версию библиотеки (сам curl не потребуется) и копируем необходимые файлы в целевой каталог:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
-cd /d C:\Programs\curl\curl-7.46.0-x32\lib
+cd /d C:\Programs\curl\curl-7.47.1-x32\lib
 md C:\Programs\curl\x32
 nmake /f Makefile.vc10 cfg=release-dll
 nmake /f Makefile.vc10 cfg=release
@@ -200,7 +207,7 @@ xcopy /E ..\include ..\..\x32</source>
 <li>
 Собираем 64-битную версию, открыв новую консоль и выполнив команды:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
-cd /d C:\Programs\curl\curl-7.46.0-x64\lib
+cd /d C:\Programs\curl\curl-7.47.1-x64\lib
 md C:\Programs\curl\x64
 nmake /f Makefile.vc10 MACHINE=x64 cfg=release-dll
 nmake /f Makefile.vc10 MACHINE=x64 cfg=release
@@ -208,15 +215,15 @@ copy *.dll ..\..\x64
 copy *.lib ..\..\x64
 xcopy /E ..\include ..\..\x64</source>
 </li>
-<li>Каталоги <code>C:\Programs\curl\curl-7.46.0-x32</code> и <code>curl-7.46.0-x64</code> можно удалять.</li>
+<li>Каталоги <code>C:\Programs\curl\curl-7.47.1-x32</code> и <code>curl-7.47.1-x64</code> можно удалять.</li>
 </ol>
 <br/>
 <h5>• OpenSSL</h5>
 <ol>
-<li>Распаковываем архив OpenSSL два раза в каталог <code>C:\Programs\OpenSSL\</code>, переименовывая полученный подкаталог из <code>openssl-1.0.2e</code>, соответственно, в <code>openssl-1.0.2e-x32</code> и <code>openssl-1.0.2e-x64</code>.</li>
+<li>Распаковываем архив OpenSSL два раза в каталог <code>C:\Programs\OpenSSL\</code>, переименовывая полученный подкаталог из <code>openssl-1.0.2g</code>, соответственно, в <code>openssl-1.0.2g-x32</code> и <code>openssl-1.0.2g-x64</code>.</li>
 <li>Открываем консоль, собираем и устанавливаем 32-битную версию:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
-cd /d C:\Programs\OpenSSL\openssl-1.0.2e-x32\
+cd /d C:\Programs\OpenSSL\openssl-1.0.2g-x32\
 perl Configure VC-WIN32 no-asm --prefix=C:\Programs\OpenSSL\x32
 ms\do_ms
 nmake -f ms\ntdll.mak
@@ -225,13 +232,13 @@ nmake -f ms\ntdll.mak install</source>
 <li>
 Открываем новую консоль, собираем и устанавливаем 64-битную версию:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
-cd /d C:\Programs\OpenSSL\openssl-1.0.2e-x64\
+cd /d C:\Programs\OpenSSL\openssl-1.0.2g-x64\
 perl Configure VC-WIN64A --prefix=C:\Programs\OpenSSL\x64
 ms\do_win64a
 nmake -f ms\ntdll.mak
 nmake -f ms\ntdll.mak install</source>
 </li>
-<li>Каталоги <code>C:\Programs\OpenSSL\openssl-1.0.2e-x32</code> и <code>openssl-1.0.2e-x64</code> можно удалять.</li>
+<li>Каталоги <code>C:\Programs\OpenSSL\openssl-1.0.2g-x32</code> и <code>openssl-1.0.2g-x64</code> можно удалять.</li>
 </ol>
 <br/>
 <h5>• gSOAP</h5>
