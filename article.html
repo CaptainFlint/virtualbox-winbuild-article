@@ -16,6 +16,7 @@
 » <a href="#final-touches">Последние штрихи</a><br/>
 » <a href="#build-vb">Собираем VirtualBox</a><br/>
 » <a href="#afterword">Послесловие</a><br/>
+» <a href="#history">Дополнения</a><br/>
 </blockquote>
 <br/>
 
@@ -42,10 +43,10 @@
 <ul>
 <li><b>Visual Studio 2010 Professional</b><br/>Для полноценной сборки требуется именно 2010, и именно Professional. В версии 2010 Express нет библиотеки ATL, необходимой для сборки COM API, через который работают фронт-энды. Я сделал несколько попыток перенести проект на VS 2013 или 2015 Community Edition, чтобы избавиться от необходимости платной лицензии, но, увы, безуспешно.</li>
 <li><b><a href="http://www.microsoft.com/en-us/download/details.aspx?id=8279">Windows SDK v7.1</a></b></li>
-<li><b><a href="https://dev.windows.com/downloads/windows-8-1-sdk">Windows SDK v8.1</a></b></li>
 <li><b><a href="https://www.microsoft.com/en-US/download/details.aspx?id=23691">Visual Studio 2010 SP1</a></b></li>
 <li><b><a href="https://www.microsoft.com/en-us/download/details.aspx?id=4422">Visual C++ 2010 SP1 Compiler Update for SDK 7.1</a></b></li>
 <li><b><a href="http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=11800">Windows Driver Development Kit (WDK) v7.1</a></b></li>
+<li><b><a href="https://dev.windows.com/downloads/windows-8-1-sdk">Windows SDK v8.1</a></b></li>
 <li><b><a href="http://www.activestate.com/activeperl/downloads">ActivePerl</a></b></li>
 <li><b><a href="http://www.activestate.com/activepython/downloads">ActivePython 2.7</a></b></li>
 <li><b><a href="http://wixtoolset.org/">WiX</a></b></li>
@@ -269,7 +270,7 @@ nmake -f ms\ntdll.mak install</source>
 
 <anchor>final-touches</anchor><h4><img src="https://habrastorage.org/getpro/geektimes/post_images/9f8/505/49b/9f850549b13e79dc47d23f5f9e994379.png"/> Последние штрихи</h4>
 <br/>
-Подготовка к сборке почти завершена, остались несколько шагов. Если вы этого ещё не сделали, нужно скачать архив с исходными кодами VirtualBox нужной версии и распаковать его в удобное место. В качестве рабочего каталога я выбрал <code>C:\Devel\VirtualBox-src\</code>.<br/>
+Подготовка к сборке почти завершена, остались несколько шагов. Если вы этого ещё не сделали, нужно скачать архив с исходными кодами VirtualBox нужной версии и распаковать его в удобное место. В качестве рабочего каталога я выбрал <code>C:\Devel\</code>; в него я распаковал архив исходных кодов и переименовал полученный каталог в <code>VirtualBox-src</code>.<br/>
 <br/>
 <h5>• Добавление сертификатов</h5>
 Если у вас нет полноценного сертификата, то рекомендуется создать хотя бы персональный (с ним проще загружать драйверы, чем совсем без подписи). Для этого нужно открыть консоль с повышенными привилегиями и выполнить в ней следующие команды:
@@ -278,7 +279,7 @@ makecert.exe -a sha1 -r -pe -ss my -n "CN=Roga and Kopyta Ltd" C:\Devel\testcert
 makecert.exe -a sha256 -r -pe -ss my -n "CN=Roga and Kopyta Ltd" C:\Devel\testcert_256.cer
 certmgr.exe -add C:\Devel\testcert_1.cer -s -r localMachine root
 certmgr.exe -add C:\Devel\testcert_256.cer -s -r localMachine root</source>
-Имя для сертификатов («Roga and Kopyta Ltd») и путь к файлам можно выбирать по своему усмотрению. В дальнейшем потребуется эти два сертификата как-то различать. Откройте консоль управления сертификатами (запустите <code>certmgr.msc</code>), откройте там список персональных сертификатов. Дважды щёлкните на первом из сертификатов «Roga and Kopyta Ltd», в открывшемся диалоге перейдите на вкладку Details. В поле Signature algorithm будет указан алгоритм подписи: sha256RSA или sha1RSA. Далее, в самом конце списка будет поле Thumbprint со значением в виде последовательности шестнадцатеричных чисел. Скопируйте это значение куда-нибудь. То же самое повторите для второго из сертификатов. Не забудьте отметить, какой из них был sha256, а какой — sha1. (Более простым решением было бы задать разные имена сертификатам, но две разноимённых подписи будут смотреться неэстетично.)<br/>
+Имя для сертификатов («Roga and Kopyta Ltd») и путь к файлам можно выбирать по своему усмотрению. Поскольку имена одинаковые, для различения сертификатов нужно будет использовать цифровой отпечаток. Откройте консоль управления сертификатами (запустите <code>certmgr.msc</code>), откройте там список персональных сертификатов. Дважды щёлкните на первом из сертификатов «Roga and Kopyta Ltd», в открывшемся диалоге перейдите на вкладку Details. В поле Signature algorithm будет указан алгоритм подписи: sha256RSA или sha1RSA. Далее, в самом конце списка будет поле Thumbprint со значением в виде последовательности шестнадцатеричных чисел. Скопируйте это значение куда-нибудь. То же самое повторите для второго из сертификатов. Не забудьте отметить, какой из них был sha256, а какой — sha1. (Более простым решением было бы задать разные имена сертификатам, но две разноимённых подписи будут смотреться неэстетично.)<br/>
 <br/>
 <h5>• Сборка xmllint</h5>
 На одном из этапов потребуется также программа xmllint. Я не указывал её в списке требований, потому что необходимые исходники уже присутствуют в архиве VB. Сборочные правила не рассчитаны на автоматическую сборку этой утилиты, поэтому её придётся собрать отдельно. В качестве целевого каталога я выбрал <code>C:\Programs\xmllint</code>.
@@ -323,7 +324,7 @@ VBoxRemPrimary_SOURCES.win.amd64 = $(VBoxREMImp_0_OUTDIR)/VBoxREMRes.o</source>
 Здесь используется MinGW, а при сборке 32-битной версии VB, как вы помните, у нас работает MinGW 3.3.3. Её компилятор ресурсов неправильно трактует переданные ему параметры, так что сборка падает. Этой заменой я отключаю использование (а следовательно, и компиляцию) ресурсного объектника для 32-битной версии. На работоспособность итоговых файлов это не влияет.
 </li>
 <li>
-Открываем файл <code>src\VBox\Installer\win\VBoxMergeApp.wxi</code>, в строке 278 находим следующий код:
+Открываем файл <code>src\VBox\Installer\win\VBoxMergeApp.wxi</code>, в строке 280 находим следующий код:
 <source lang="xml">        &lt;File Id="file_QtCoreVBox4.dll" Name="QtCoreVBox4.dll"
               Source="$(env.PATH_OUT)\bin\QtCoreVBox4.dll" /&gt;
         &lt;File Id="file_QtGuiVBox4.dll" Name="QtGuiVBox4.dll"
@@ -341,7 +342,7 @@ VBoxRemPrimary_SOURCES.win.amd64 = $(VBoxREMImp_0_OUTDIR)/VBoxREMRes.o</source>
               Source="$(env.PATH_OUT)\bin\QtOpenGL4.dll" /&gt;</source>
 Здесь задаются правила для инсталлятора. Библиотека Qt для оригинального VB собирается с брэндированным суффиксом, так что итоговые библиотеки имеют имена вида <code>QtCoreVBox4.dll</code>. Мы же собирали библиотеку без таких суффиксов.<br/>
 <br/>
-В том же файле добавляем инструкции по упаковке OpenSSL-библиотек в дистрибутив, в любое место вне условных блоков (я добавил в строку 308, перед комментарием «EFI firmware»):
+В том же файле добавляем инструкции по упаковке OpenSSL-библиотек в дистрибутив, в любое место вне условных блоков (я добавил в строку 310, перед комментарием «EFI firmware»):
 <source lang="xml">        &lt;!-- OpenSSL DLL files --&gt;
         &lt;File Id="file_ssleay32.dll" Name="ssleay32.dll"
               Source="$(env.PATH_OUT)\bin\ssleay32.dll" /&gt;
@@ -364,6 +365,37 @@ VBoxRemPrimary_SOURCES.win.amd64 = $(VBoxREMImp_0_OUTDIR)/VBoxREMRes.o</source>
 или на любую другую строку, которая вам подходит. Теоретически, этот параметр должен переопределяться локальным конфигом (см. следующий пункт), но что-то где-то оказалось не учтено, и для корректной сборки приходится менять именно здесь.
 </li>
 <li>
+Если VB собирается с подписыванием, то для большинства исполняемых файлов выставляется флаг принудительной проверки подписи (опция компоновщика <code>/IntegrityCheck</code>). Если у вас полноценный сертификат, это не проблема. Если нет — VB просто откажется запускаться после установки (даже в тестовом режиме). Я модифицировал файл <code>Config.kmk</code> таким образом, чтобы флаг добавлялся только при использовании полноценного сертификата (сертификат считается полноценным, если в файле <code>LocalConfig.kmk</code> задан кросс-сертификат; см. ниже). Набор исправлений заключается в следующем.
+<ul>
+<li>Вставить блок определения переменной <code>VBOX_INTEGRITY_CHECK</code>, которая будет использоваться вместо фиксированной опции. Я добавил этот блок кода перед строкой «<code>define VBOX_RE_SIGN_DLL_INTERNAL_FN</code>» (номер строки 3084):
+<source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE)
+	VBOX_INTEGRITY_CHECK := /IntegrityCheck
+else
+	VBOX_INTEGRITY_CHECK := /IntegrityCheck:NO
+endif</source>
+</li>
+<li>Чуть ниже, в строке 3100 (номер строки дан с учётом предыдущей вставки) будет команда:
+<source>	$(VBOX_VCC_EDITBIN) /LargeAddressAware /DynamicBase /NxCompat /Release /IntegrityCheck \
+		/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
+		"$@"</source>
+Замените здесь <code>/IntegrityCheck</code> на <code>$(VBOX_INTEGRITY_CHECK)</code>.
+</li>
+<li>Теперь нужно найти все вхождения следующего вида:
+<source>ifdef VBOX_SIGNING_MODE
+ TEMPLATE_XXXXXX_LDFLAGS          += -IntegrityCheck
+endif</source>
+или
+<source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_WITH_HARDENING)
+ TEMPLATE_XXXXXX_LDFLAGS          += -IntegrityCheck
+endif</source>
+где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. В VB 5.0.20 таких вхождений — 6 штук, по три каждого вида (номера строк с учётом вышеприведённой вставки: 3521, 3660, 3767, 4065, 4825, 5287). Здесь нужно добавить условие, что переменная кросс-сертификата определена. В итоге первая строчка должна выглядеть, соответственно, как
+<source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE)</source>
+или
+<source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE) && defined(VBOX_WITH_HARDENING)</source>
+</li>
+</ul>
+</li>
+<li>
 Ну и, наконец, создаём в корне рабочего каталога файл с именем <code>LocalConfig.kmk</code>, в который прописываем следующее содержимое:
 <source>VBOX_WITH_HARDENING :=
 SDK_VBOX_OPENSSL-x86_INCS := C:\Programs\OpenSSL\x32\include
@@ -379,9 +411,19 @@ VBOX_WITH_COMBINED_PACKAGE := 1
 VBOX_WITH_QT4_PAYLOAD := 1
 VBOX_SIGNING_MODE := release
 VBOX_CERTIFICATE_SUBJECT_NAME := Roga and Kopyta Ltd
+VBOX_CERTIFICATE_FINGERPRINT := XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+VBOX_CERTIFICATE_SHA2_SUBJECT_NAME := Roga and Kopyta Ltd
+VBOX_CERTIFICATE_SHA2_FINGERPRINT := XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+VBOX_TSA_URL := http://timestamp.digicert.com
+VBOX_TSA_SHA2_URL := http://timestamp.digicert.com
+VBOX_TSA_URL_ARGS := /tr $(VBOX_TSA_URL) /td sha1
+VBOX_TSA_SHA2_URL_ARGS := /tr "$(VBOX_TSA_SHA2_URL)" /td sha256
+VBOX_CROSS_CERTIFICATE_FILE :=
 VBOX_CROSS_CERTIFICATE_FILE_ARGS :=
-VBOX_SIGNTOOL := C:\WinDDK\7600.16385.1\bin\amd64\SignTool.exe
-VBOX_INF2CAT := C:\WinDDK\7600.16385.1\bin\selfsign\Inf2Cat.exe
+VBOX_CROSS_CERTIFICATE_SHA2_FILE :=
+VBOX_CROSS_CERTIFICATE_SHA2_FILE_ARGS :=
+VBOX_PATH_SIGN_TOOLS := C:\Programs\DevKits\8.1\bin\x64
+VBOX_PATH_SELFSIGN := C:\WinDDK\7600.16385.1\bin\selfsign
 VBOX_PATH_WISUMINFO := "C:\Program Files\Microsoft SDKs\Windows\v7.1\Samples\sysmgmt\msi\scripts\WiSumInf.vbs"
 VBOX_WITH_DOCS := 1
 VBOX_WITH_DOCS_CHM := 1
@@ -392,10 +434,19 @@ VBOX_PATH_HTML_HELP_WORKSHOP := "C:\Program Files (x86)\HTML Help Workshop"
 VBOX_PDFLATEX := C:\Programs\MiKTeX\miktex\bin\pdflatex.exe
 VBOX_PDFLATEX_CMD := $(VBOX_PDFLATEX) -halt-on-error -interaction batchmode
 TOOL_WGET_FETCH := C:\Programs\wget\bin\wget.exe
-VBOX_INSTALLER_LANGUAGES := en_US</source>
-Главная строка, ради которой всё и затевалось, идёт здесь первой: отключаем hardening. В переменной <code>VBOX_CERTIFICATE_SUBJECT_NAME</code> потребуется указать имя сертификата, который вы создавали ранее. Если у вас не самоподписанный сертификат, а покупной, то здесь указываете его имя, следующую строчку (переменную <code>VBOX_CROSS_CERTIFICATE_FILE_ARGS</code>) удаляете, а вместо неё добавляете новую строку, в которой переменной <code>VBOX_CROSS_CERTIFICATE_FILE</code> (без «<code>_ARGS</code>») присваиваете полный путь к файлу кросс-сертификата (без него драйверы не будут считаться подписанными). Его можно найти на сайте компании, выпустившей сертификат, или <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/dn170454(v=vs.85).aspx">у Microsoft</a>. Также имеются другие переменные, через которые можно поменять хранилище, адрес сервера для наложения временно́й метки или вообще задать произвольный дополнительный набор аргументов для утилиты <code>signtool</code>. В файле <code>Config.kmk</code> под комментарием «Code Signing» (начиная со строки 2712) можно посмотреть, какие там переменные определяются и как они используются.<br/>
-<br/>
-Остальное содержимое <code>LocalConfig.kmk</code> — это разнообразные параметры, включающие те или иные компоненты сборки, задающие пути к внешним инструментам и аргументы их запуска. Обратите внимание, что если путь установки WiX содержит пробелы, то необходимо преобразовать его в короткий. Обязательно проверьте, чему он равен на вашей системе (даже для одинаковых длинных имён он может оказаться различным). Для этого можно воспользоваться командой <code>dir /x</code>. Трюк со взятием в кавычки здесь, увы, не работает.
+VBOX_INSTALLER_LANGUAGES := en_US
+VBOX_WITH_TESTCASES :=
+VBOX_WITH_VALIDATIONKIT :=
+VBOX_WITH_VBOX_IMG := 1</source>
+В вышеприведённом шаблоне необходимо кое-что подправить:
+<ul>
+<li>В переменных <code>VBOX_CERTIFICATE_SUBJECT_NAME</code> и <code>VBOX_CERTIFICATE_SHA2_SUBJECT_NAME</code> потребуется указать имена используемых вами сертификатов для подписи SHA-1 и SHA-256, соответственно.</li>
+<li>В переменных <code>VBOX_CERTIFICATE_FINGERPRINT</code> и <code>VBOX_CERTIFICATE_SHA2_FINGERPRINT</code> пропишите цифровые отпечатки, которые были скопированы ранее из консоли управления сертификатами.</li>
+<li>Если у вас не самоподписанный сертификат, а покупной, то удалите строчки с переменными <code>VBOX_CROSS_CERTIFICATE_FILE_ARGS</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE_ARGS</code>, а в переменных <code>VBOX_CROSS_CERTIFICATE_FILE</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE</code> (без «<code>_ARGS</code>») задайте полный путь к файлу кросс-сертификата (без него драйверы не будут считаться подписанными). Его можно найти на сайте компании, выпустившей сертификат, или <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/dn170454(v=vs.85).aspx">у Microsoft</a>.</li>
+<li>Для более тонкой настройки подписывания имеется множество других переменных, с помощью которых можно задать хранилище, адрес сервера для наложения временно́й метки или вообще задать произвольный дополнительный набор аргументов для утилиты <code>signtool</code>. В файле <code>Config.kmk</code> под комментарием «Code Signing» (начиная со строки 2713) можно посмотреть, какие там переменные определяются и как они используются.</li>
+<li>Если вы устанавливали какие-то из программ в каталоги, отличающиеся от моих, нужно поправить пути в соответствующих переменных. Обратите внимание, что если путь установки WiX содержит пробелы, то необходимо преобразовать его в короткий. Обязательно проверьте, чему он равен на вашей системе (даже для одинаковых длинных имён он может оказаться различным). Для этого можно воспользоваться командой <code>dir /x</code>. Трюк со взятием в кавычки здесь, увы, не работает.</li>
+</ul>
+Остальные переменные используются в основном для выбора собираемых компонентов. Ну и главная строка, ради которой всё и затевалось, идёт самой первой: отключаем hardening.<br/>
 </li>
 </ol>
 <br/>
@@ -416,13 +467,13 @@ set QMAKESPEC=win32-msvc2010
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-libcurl=C:\Programs\curl\x64 --with-Qt4=C:\Programs\Qt\4.8.7-x64 --with-python=C:\Programs\Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-5.0.20_OSE-r105127-MultiArch_amd64.msi</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-5.0.20_OSE-r106931-MultiArch_amd64.msi</source>
 Скрипт <code>configure.vbs</code> проверяет окружение и создаёт файлы конфигурации (<code>AutoConfig.kmk</code> и <code>env.bat</code>). Первый запуск <code>kmk</code> выполняет сборку бинарных компонентов и помещает их в каталог <code>out\win.amd64\bin\</code>. Последняя команда собирает из этих компонентов промежуточный MSI-архив. Важные моменты:
 <ul>
 <li>Слэши в последней команде должны быть обязательно прямыми. С обратными <code>kmk</code> не найдёт сборочные правила.</li>
 <li>Хоть мы собираем 64-битную версию, архив располагается в подкаталоге <code>out\win.x86\…</code>, потому что финальная сборка будет производиться из 32-битного окружения.</li>
 <li>Если вы меняли суффикс версии, то «_OSE» в имени MSI-файла необходимо поправить на то, что вы задали в переменной <code>VBOX_BUILD_PUBLISHER</code>.</li>
-<li>Ревизию в имени MSI-файла (105127) можно либо взять из имени файла официального дистрибутива, либо посмотреть в файле <code>Config.kmk</code> в переменной <code>VBOX_SVN_REV_FALLBACK</code> (строка 6170).</li>
+<li>Ревизию в имени MSI-файла (106931) можно найти в файле <code>Config.kmk</code> в переменной <code>VBOX_SVN_REV_FALLBACK</code> (строка 6243).</li>
 </ul>
 </li>
 <li>
@@ -438,12 +489,79 @@ set QMAKESPEC=win32-msvc2010
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt4=C:\Programs\Qt\4.8.7-x32 --with-python=C:\Programs\Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.0.20_OSE-r105127-MultiArch.exe</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.0.20_OSE-r106931-MultiArch.exe</source>
 Аналогично, суффикс «_OSE» в имени итогового файла надо поменять на свой.
 </li>
 </ol>
 <br/>
 Если ни я, ни вы ничего не перепутали, то после всех этих перипетий у вас должен получиться инсталлятор VirtualBox, отличающийся от Oracle-версии только значком исполняемого файла, картинкой в диалоге «О программе» и, конечно же, отключённым hardening'ом. При желании значок и картинку тоже можно поменять, но это тема отдельного разговора.<br/>
+<br/>
+Для удобства я свёл запуск этих двух цепочек команд в единый файл. Если вам регулярно нужно пересобирать пакет, удобнее пользоваться им. Но учтите, что он не выполняет проверку на ошибки, лень было добавлять.
+<spoiler title="Единый батник">
+<source lang=".bat">@echo off
+
+set VERSION=5.0.20_OSE-r106931
+
+del /q build-tmp.cmd 2>nul
+
+echo.
+echo ### BUILDING x64 VERSION ###
+echo.
+
+echo @echo off>> build-tmp.cmd
+echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7>> build-tmp.cmd
+echo color 07>> build-tmp.cmd
+echo set BUILD_TARGET_ARCH=amd64>> build-tmp.cmd
+echo set INCLUDE=C:\Programs\curl\x64\include;%%INCLUDE%%>> build-tmp.cmd
+echo set LIB=C:\Programs\curl\x64;%%LIB%%>> build-tmp.cmd
+echo set LIBPATH=C:\Programs\curl\x64;%%LIBPATH%%>> build-tmp.cmd
+echo set PATH=C:\Programs\Qt\4.8.7-x64\bin;%%PATH%%>> build-tmp.cmd
+echo set QMAKESPEC=win32-msvc2010>> build-tmp.cmd
+echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-libcurl=C:\Programs\curl\x64 --with-Qt4=C:\Programs\Qt\4.8.7-x64 --with-python=C:\Programs\Python>> build-tmp.cmd
+echo call env.bat>> build-tmp.cmd
+echo kmk>> build-tmp.cmd
+echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-%VERSION%-MultiArch_amd64.msi>> build-tmp.cmd
+
+cmd /c build-tmp.cmd
+
+del /q build-tmp.cmd 2>nul
+
+echo.
+echo ### BUILDING x32 VERSION ###
+echo.
+
+echo @echo off>> build-tmp.cmd
+echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7>> build-tmp.cmd
+echo color 07>> build-tmp.cmd
+echo set BUILD_TARGET_ARCH=x86>> build-tmp.cmd
+echo set INCLUDE=C:\Programs\curl\x32\include;%%INCLUDE%%>> build-tmp.cmd
+echo set LIB=C:\Programs\curl\x32;%%LIB%%>> build-tmp.cmd
+echo set LIBPATH=C:\Programs\curl\x32;%%LIBPATH%%>> build-tmp.cmd
+echo set PATH=C:\Programs\Qt\4.8.7-x32\bin;%%PATH%%>> build-tmp.cmd
+echo set QMAKESPEC=win32-msvc2010>> build-tmp.cmd
+echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt4=C:\Programs\Qt\4.8.7-x32 --with-python=C:\Programs\Python>> build-tmp.cmd
+echo call env.bat>> build-tmp.cmd
+echo kmk>> build-tmp.cmd
+echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-%VERSION%-MultiArch.exe>> build-tmp.cmd
+
+cmd /c build-tmp.cmd
+
+del /q build-tmp.cmd 2>nul
+
+echo.
+echo ### BUILD COMPLETE ###
+echo.</source>
+</spoiler>
+<br/>
+Как неожиданно обнаружилось после выхода статьи, самоподписанный дистрибутив VB отказывается устанавливаться на современные системы (Windows 8/10), сообщая о невалидной подписи драйверов. Причём это происходит даже в тестовом режиме, где валидность подписи не должна играть никакой роли. Чтобы обойти эту проблему, необходимо добавить использовавшиеся сертификаты в корневое хранилище:
+<ol>
+<li>Откройте свойства скачанного файла дистрибутива: правый щелчок &rarr; Properties, перейдите на вкладку Digital Signatures. Там будут две подписи от «Roga and Kopyta Ltd»: sha1 и sha256. Выделяем первую, жмём Details.</li>
+<li>В открывшемся диалоге жмём кнопку View Certificate.</li>
+<li>В новом диалоге жмём Install Certificate.</li>
+<li>Выбираем для установки Local Machine, Next. Подтверждаем UAC-запрос. Отмечаем пункт "Place all certificates in the following store", нажимаем Browse и выбираем хранилище "Trusted Root Certification Authorities". Next, Finish. Сертификат установлен.</li>
+<li>Закрываем все диалоги, кроме самого первого, выделяем подпись sha256, повторям для неё шаги 3–5.</li>
+<li>Закрываем все диалоги, запускаем установку.</li>
+</ol>
 <br/>
 <anchor>afterword</anchor><h4><img src="https://habrastorage.org/getpro/geektimes/post_images/9f8/505/49b/9f850549b13e79dc47d23f5f9e994379.png"/> Послесловие</h4>
 <br/>
@@ -451,4 +569,15 @@ kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.0.20_OSE-r10512
 <br/>
 Огромное количество аспектов сборочной системы VB осталось за кадром: как из-за нежелания раздувать текст, так и по причине моей лени, когда, найдя какой-то обходной путь для очередной проблемы, я не лез в глубины системы сборки, а поскорее переходил к следующему этапу. В конце концов, моей главной задачей было не найти оптимальный путь, а собрать, наконец, свой вариант актуального VirtualBox'а: сидеть на 4.3.12 уже поднадоело, но я не мог обновлять один из своих основных рабочих инструментов на нечто, что в любой момент может просто отказаться работать на неопределённый срок.<br/>
 <br/>
-Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Для тех, кому лень поднимать всё вышеописанное нагромождение программ, но интересно расковырять получающийся в итоге дистрибутив, я выложил инсталлятор <a href="https://yadi.sk/d/cIlxiSU0rrfBt">сюда</a>. Все драйверы в нём (да и остальные файлы) подписаны недоверенным сертификатом, так что в 64-битной Windows этот вариант VB заработает только в тестовом режиме. Если имеются вопросы, пожелания, предложения — велкам в комментарии или в личку. И да пребудет с вами Open Source!
+Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Для тех, кому лень поднимать всё вышеописанное нагромождение программ, но интересно расковырять получающийся в итоге дистрибутив, я выложил инсталлятор <a href="https://yadi.sk/d/cIlxiSU0rrfBt">сюда</a>. Все драйверы в нём (да и остальные файлы) подписаны недоверенным сертификатом, так что в 64-битной Windows этот вариант VB заработает только в тестовом режиме. Если имеются вопросы, пожелания, предложения — велкам в комментарии или в личку. И да пребудет с вами Open Source!<br/>
+<br/>
+<anchor>history</anchor><h4><img src="https://habrastorage.org/getpro/geektimes/post_images/9f8/505/49b/9f850549b13e79dc47d23f5f9e994379.png"/> Дополнения</h4><br/>
+<h5>• Обновление статьи от 24.05.2016</h5>
+<ol>
+<li>Внесены уточнения с учётом изменений в VB 5.0.20, в частности, двойное подписывание SHA-1/SHA-256.</li>
+<li>Добавлено отключение флага принудительной проверки подписей, если собирается самоподписанный дистрибутив.</li>
+<li>Добавлена инструкция по обходу ошибки установки самоподписанного дистрибутива.</li>
+<li>Обновлены версии используемых библиотек.</li>
+<li>Для ускорения сборки отключены некоторые неиспользуемые компоненты.</li>
+<li>Исправлены мелкие недочёты.</li>
+</ol>
