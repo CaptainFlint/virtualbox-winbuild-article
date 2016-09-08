@@ -4,7 +4,7 @@
 <br/>
 Как известно большинству пользователей Windows-версии VirtualBox (далее — <em>VB</em>, не путать с Visual Basic), в релизе 4.3.14 разработчики этой программы добавили дополнительный механизм защиты, называемый «hardening» (что можно перевести как «упрочнение»), который привёл к многочисленным проблемам совместимости VB с антивирусами, драйверами крипто-модулей и даже отдельными обновлениями самой Windows, в результате чего виртуальные машины попросту отказываются запускаться. В лучшем случае пользователю приходится ждать около месяца, пока проблемная программа, о которой он сообщит разработчикам, окажется учтена в следующем релизе VB. В худшем случае придётся либо удалять конфликтующую программу (или системное обновление), либо откатывать VB до версии 4.3.12 — последней, в которой не было этой защиты. Многочисленные предложения к разработчикам о добавлении пользовательского списка исключений или опции, отключающей защиту целиком, остаются без внимания. Единственный внятный ответ с их стороны звучит так: «не хотите защиту — компилируйте из исходников сами». Что ж, придётся этим заняться.<br/>
 <br/>
-Несмотря на то, что процедура сборки <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">описана</a> на официальной вики, она неполна и кое в чём устарела, а сама сборка так и норовит выдать странные ошибки. Поэтому когда я всё-таки пробился до конца сей процедуры, я решил, что её описание заслуживает отдельной статьи. Инструкция адаптирована для VB версии 5.1.2, но я сохранил инструкции и для 5.0.26 (кроме номеров строк) на случай, если кто-то пока не планирует переход на 5.1.<br/>
+Несмотря на то, что процедура сборки <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">описана</a> на официальной вики, она неполна и кое в чём устарела, а сама сборка так и норовит выдать странные ошибки. Поэтому когда я всё-таки пробился до конца сей процедуры, я решил, что её описание заслуживает отдельной статьи. Инструкция адаптирована для VB версии 5.1.4, но я сохранил инструкции и для 5.0.26 (кроме номеров строк) на случай, если кто-то пока не планирует переход на 5.1.<br/>
 <br/>
 <cut text="Я заинтересован" />
 <h4><img src="https://habrastorage.org/getpro/geektimes/post_images/9f8/505/49b/9f850549b13e79dc47d23f5f9e994379.png"/> Содержание</h4>
@@ -75,6 +75,7 @@
 <li><b><a href="http://sourceforge.net/projects/gsoap2/files/gSOAP/">gSOAP 2.7.x</a></b></li>
 <li><b><a href="http://miktex.org/portable">MiKTeX Portable</a></b></li>
 <li><b><a href="http://gnuwin32.sourceforge.net/packages/wget.htm">wget</a></b><br/>Требуются два архива: Binaries и Dependencies.</li>
+<li><b><a href="http://www.nasm.us/">NASM</a></b><br/>Рекомендую 64-битную портативную версию.</li>
 </ul>
 <br/>
 <spoiler title="Зачем оно всё?">
@@ -99,6 +100,9 @@
 <li>wget<br/>
 wget или его альтернатива будет использоваться для скачивания ISO-образа гостевых дополнений. Этих команд изначально нет в проекте VB, они добавляются вручную в kmk-файл (см. ниже). Если вам не нужны гостевые дополнения в дистрибутиве, можно обойтись без wget, но тогда нужно будет учесть это при модификации сборочных правил. Альтернативой может работать cURL, исходники которого уже участвуют в процессе сборки. Но в текущем варианте сам curl.exe не собирается, только библиотека libcurl, так что для использования curl потребуется сначала его самостоятельно собрать (или скачать уже скомпилированный кем-то вариант).
 </li>
+<li>NASM<br/>
+Этот ассемблер будет использоваться для сборки OpenSSL. Поддерживается и сборка без внешнего ассемблера, но с ним будет создан более оптимальный код.
+</li>
 </ul>
 </spoiler>
 <br/>
@@ -109,7 +113,7 @@ wget или его альтернатива будет использовать�
 <tr><td>SDK</td><td>7.1</td><td><code>C:\Program Files\Microsoft SDKs\Windows\v7.1\</code></td></tr>
 <tr><td>SDK</td><td>8.1</td><td><code>C:\Programs\DevKits\8.1\</code></td></tr>
 <tr><td>WDK</td><td>7.1.0</td><td><code>C:\WinDDK\7600.16385.1\</code></td></tr>
-<tr><td>ActivePerl</td><td>5.22.0 Build 2200 x64</td><td><code>C:\Programs\Perl\</code></td></tr>
+<tr><td>ActivePerl</td><td>5.24.0 Build 2400 x64</td><td><code>C:\Programs\Perl\</code></td></tr>
 <tr><td>ActivePython</td><td>2.7.10.12 x64</td><td><code>C:\Programs\Python\</code></td></tr>
 <tr><td>WiX</td><td>3.10.3.3007</td><td><code>C:\Program Files (x86)\WiX Toolset v3.10\</code></td></tr>
 <tr><td>Qt4</td><td>4.8.7</td><td><code>C:\Programs\Qt\4.8.7-{x32|x64}\</code></td></tr>
@@ -120,11 +124,12 @@ wget или его альтернатива будет использовать�
 <tr><td>MinGW Binutils</td><td>2.13.90-20021006-2</td><td><code>C:\Programs\mingw32\</code></td></tr>
 <tr><td>MinGW-w64</td><td>4.5.4</td><td><code>C:\Programs\mingw64\</code></td></tr>
 <tr><td>SDL</td><td>1.2.15</td><td><code>C:\Programs\SDL\{x32|x64}\</code></td></tr>
-<tr><td>cURL</td><td>7.50.0</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
+<tr><td>cURL</td><td>7.50.1</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
 <tr><td>OpenSSL</td><td>1.0.2h</td><td><code>C:\Programs\OpenSSL\{x32|x64}\</code></td></tr>
 <tr><td>gSOAP</td><td>2.7.16</td><td><code>C:\Programs\gSOAP\</code></td></tr>
 <tr><td>MiKTeX Portable</td><td>2.9.5719</td><td><code>C:\Programs\MiKTeX\</code></td></tr>
 <tr><td>wget</td><td>1.11.4.1</td><td><code>C:\Programs\wget\</code></td></tr>
+<tr><td>NASM</td><td>2.12.02 x64</td><td><code>C:\Programs\nasm\</code></td></tr>
 </table>
 
 <anchor>environment-inst</anchor><h4><img src="https://habrastorage.org/getpro/geektimes/post_images/9f8/505/49b/9f850549b13e79dc47d23f5f9e994379.png"/> Особенности установки программ</h4><br/>
@@ -153,10 +158,11 @@ wget или его альтернатива будет использовать�
 <source lang=".bat">cd /d C:\Programs\Qt\build-x32
 SET QTVER=4.8.7
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+COLOR 07
 SET QTDIR=C:\Programs\Qt\%QTVER%-x32
 SET PATH=%QTDIR%\bin;%PATH%
 SET QMAKESPEC=win32-msvc2010</source>
-Если не нравится зелёный цвет шрифта, установленный командой <code>SetEnv.Cmd</code>, можно сбросить его командой <code>color</code> без параметров.
+Команда <code>color</code> отключает зелёный цвет шрифта, устанавливаемый скриптом <code>SetEnv.Cmd</code>.
 </li>
 <li>
 Теперь запускаем <code>configure.exe</code> из каталога <code>4.8.7-src</code>. Можно конфигурировать по умолчанию, но я предпочитаю бо́льшую часть опций указывать явным образом, а ненужные модули отключать совсем, чтобы ускорить компиляцию. Вот команда, которую я использовал у себя:
@@ -170,6 +176,7 @@ SET QMAKESPEC=win32-msvc2010</source>
 <source lang=".bat">cd /d C:\Programs\Qt\build-x64
 SET QTVER=4.8.7
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+COLOR 07
 SET QTDIR=C:\Programs\Qt\%QTVER%-x64
 SET PATH=%QTDIR%\bin;%PATH%
 SET QMAKESPEC=win32-msvc2010</source>
@@ -177,7 +184,7 @@ SET QMAKESPEC=win32-msvc2010</source>
 После установки обеих версий Qt можно удалять каталоги <code>build-x32</code>, <code>build-x64</code> и <code>4.8.7-src</code>, чтобы не занимали место: они нам больше не понадобятся.<br/>
 <br/>
 <h5>• Qt 5.6.1</h5>
-В версии VB 5.1.0 разработчики перешли на Qt5. Судя по коду, Qt4 по-прежнему поддерживается, но я не проверял.<br/>
+В версии VB 5.1.0 разработчики перешли на Qt5. Судя по коду, Qt4 по-прежнему поддерживается, но я не проверял. Начиная с версии Qt 5.7.0 прекращена поддержка сборки в MSVC версий ниже 2012, поэтому используем 5.6.x.<br/>
 Для Visual Studio 2010 официальные сборки отсутствуют, поэтому, как и для 4.8.7, необходимо сначала собрать библиотеку из исходных кодов.<br/>
 <br/>
 <ol>
@@ -188,6 +195,7 @@ SET QMAKESPEC=win32-msvc2010</source>
 <source lang=".bat">cd /d C:\Programs\Qt\build-x32
 SET QTVER=5.6.1
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+COLOR 07
 SET QTDIR=C:\Programs\Qt\%QTVER%-x32
 SET PATH=%QTDIR%\bin;%PATH%
 SET QMAKESPEC=win32-msvc2010</source>
@@ -210,6 +218,7 @@ SET QMAKESPEC=win32-msvc2010</source>
 <source lang=".bat">cd /d C:\Programs\Qt\build-x64
 SET QTVER=5.6.1
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+COLOR 07
 SET QTDIR=C:\Programs\Qt\%QTVER%-x64
 SET PATH=%QTDIR%\bin;%PATH%
 SET QMAKESPEC=win32-msvc2010</source>
@@ -233,38 +242,45 @@ MinGW-w64 состоит из одного архива и распаковыв�
 <li>Распаковываем архив OpenSSL два раза в каталог <code>C:\Programs\OpenSSL\</code>, переименовывая полученный подкаталог из <code>openssl-1.0.2h</code>, соответственно, в <code>openssl-1.0.2h-x32</code> и <code>openssl-1.0.2h-x64</code>.</li>
 <li>Открываем консоль, собираем и устанавливаем 32-битную версию:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+COLOR 07
+set PATH=%PATH%;C:\Programs\nasm
 cd /d C:\Programs\OpenSSL\openssl-1.0.2h-x32\
-perl Configure VC-WIN32 no-asm --prefix=C:\Programs\OpenSSL\x32
-ms\do_ms
+perl Configure VC-WIN32 --prefix=C:\Programs\OpenSSL\x32
+ms\do_nasm
 nmake -f ms\ntdll.mak
 nmake -f ms\ntdll.mak install</source>
+Если вы не хотите использовать NASM, исключите из инструкции выше модификацию переменной <code>PATH</code>, добавьте к вызову <code>Configure</code> параметр <code>no-asm</code>, а вместо скрипта <code>ms\do_nasm</code> запускайте <code>ms\do_ms</code>.
 </li>
 <li>
 Открываем новую консоль, собираем и устанавливаем 64-битную версию:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+COLOR 07
+set PATH=%PATH%;C:\Programs\nasm
 cd /d C:\Programs\OpenSSL\openssl-1.0.2h-x64\
 perl Configure VC-WIN64A --prefix=C:\Programs\OpenSSL\x64
 ms\do_win64a
 nmake -f ms\ntdll.mak
 nmake -f ms\ntdll.mak install</source>
+64-битная сборка автоматически определяет наличие NASM. Если у вас его нет, просто оставьте переменную <code>PATH</code> без изменений.
 </li>
 <li>Каталоги <code>C:\Programs\OpenSSL\openssl-1.0.2h-x32</code> и <code>openssl-1.0.2h-x64</code> можно удалять.</li>
 </ol>
 <br/>
 <h5>• cURL</h5>
 <ol>
-<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.50.0</code> в <code>curl-7.50.0-x32</code>.</li>
+<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.50.1</code> в <code>curl-7.50.1-x32</code>.</li>
 <li>
-Открываем в редакторе файл <code>C:\Programs\curl\curl-7.50.0-x32\lib\Makefile.vc10</code>, находим там в районе строки 122 следующий код:
+Открываем в редакторе файл <code>C:\Programs\curl\curl-7.50.1-x32\lib\Makefile.vc10</code>, находим там в районе строки 122 следующий код:
 <source>CFLAGS       = $(CFLAGS)</source>
-и добавляем после него:
-<source>CFLAGS = $(CFLAGS) /DCURL_DISABLE_LDAP</source>
+и заменяем на:
+<source>CFLAGS       = $(CFLAGS) /DCURL_DISABLE_LDAP</source>
 Если этого не сделать, то при сборке VB полезут ошибки линковки.
 </li>
-<li>Делаем копию каталога <code>curl-7.50.0-x32</code> под именем <code>curl-7.50.0-x64</code>.</li>
+<li>Делаем копию каталога <code>curl-7.50.1-x32</code> под именем <code>curl-7.50.1-x64</code>.</li>
 <li>Открываем консоль, собираем 32-битную версию библиотеки (сам curl не потребуется) и копируем необходимые файлы в целевой каталог:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
-cd /d C:\Programs\curl\curl-7.50.0-x32\lib
+COLOR 07
+cd /d C:\Programs\curl\curl-7.50.1-x32\lib
 md C:\Programs\curl\x32
 set INCLUDE=c:\Programs\OpenSSL\x32\include;%INCLUDE%
 set LIB=C:\Programs\OpenSSL\x32\lib;%LIB%
@@ -276,7 +292,8 @@ xcopy /E ..\include\curl ..\..\x32\include\curl\</source>
 <li>
 Собираем 64-битную версию, открыв новую консоль и выполнив команды:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
-cd /d C:\Programs\curl\curl-7.50.0-x64\lib
+COLOR 07
+cd /d C:\Programs\curl\curl-7.50.1-x64\lib
 md C:\Programs\curl\x64
 set INCLUDE=c:\Programs\OpenSSL\x64\include;%INCLUDE%
 set LIB=C:\Programs\OpenSSL\x64\lib;%LIB%
@@ -285,7 +302,7 @@ nmake /f Makefile.vc10 MACHINE=x64 cfg=release-ssl
 copy *.lib ..\..\x64
 xcopy /E ..\include\curl ..\..\x64\include\curl\</source>
 </li>
-<li>Каталоги <code>C:\Programs\curl\curl-7.50.0-x32</code> и <code>curl-7.50.0-x64</code> можно удалять.</li>
+<li>Каталоги <code>C:\Programs\curl\curl-7.50.1-x32</code> и <code>curl-7.50.1-x64</code> можно удалять.</li>
 </ol>
 <br/>
 <h5>• gSOAP</h5>
@@ -320,6 +337,7 @@ xcopy /E ..\include\curl ..\..\x64\include\curl\</source>
 <h5>• Добавление сертификатов</h5>
 Если у вас нет полноценного сертификата, то рекомендуется создать хотя бы персональный (с ним проще загружать драйверы, чем совсем без подписи). Для этого нужно открыть консоль с повышенными привилегиями и выполнить в ней следующие команды:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+COLOR 07
 makecert.exe -a sha1 -r -pe -ss my -n "CN=Roga and Kopyta Ltd" C:\Devel\testcert_1.cer
 makecert.exe -a sha256 -r -pe -ss my -n "CN=Roga and Kopyta Ltd" C:\Devel\testcert_256.cer
 certmgr.exe -add C:\Devel\testcert_1.cer -s -r localMachine root
@@ -332,6 +350,7 @@ certmgr.exe -add C:\Devel\testcert_256.cer -s -r localMachine root</source>
 <li>Копируем содержимое каталога <code>C:\Devel\VirtualBox-src\src\libs\libxml2-2.9.2</code> в <code>C:\Programs\libxml2-2.9.2\</code> (это необходимо, чтобы промежуточные объектные файлы не мешали сборке самого VB).</li>
 <li>Открываем консоль и выполняем команды:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+COLOR 07
 cd /d C:\Programs\libxml2-2.9.2\win32
 cscript.exe configure.js cruntime=/MT prefix=C:\Programs\xmllint iconv=no
 nmake /f Makefile.msvc
@@ -407,7 +426,7 @@ VBoxRemPrimary_SOURCES.win.amd64 = $(VBoxREMImp_0_OUTDIR)/VBoxREMRes.o</source>
 	$(TOOL_WGET_FETCH) http://download.virtualbox.org/virtualbox/$(VBOX_VERSION_STRING_RAW)/VBoxGuestAdditions_$(VBOX_VERSION_STRING_RAW).iso -O $@</source>
 </li>
 <li>
-По умолчанию собранный VB получает суффикс «OSE» в номере версии («5.1.2_OSE»). Если вас это не устраивает, можно поменять суффикс в файле <code>Config.kmk</code> в строке 1291, заменив код
+По умолчанию собранный VB получает суффикс «OSE» в номере версии («5.1.4_OSE»). Если вас это не устраивает, можно поменять суффикс в файле <code>Config.kmk</code> в строке 1291, заменив код
 <source> VBOX_BUILD_PUBLISHER = _OSE</source>
 на:
 <source> VBOX_BUILD_PUBLISHER =</source>
@@ -437,7 +456,7 @@ endif</source>
 <source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_WITH_HARDENING)
  TEMPLATE_XXXXXX_LDFLAGS          += -IntegrityCheck
 endif</source>
-где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. В VB 5.1.2 таких вхождений — 6 штук, по три каждого вида (номера строк с учётом вышеприведённой вставки: 3714, 3853, 3960, 4300, 5069, 5586). Здесь нужно добавить условие, что переменная кросс-сертификата определена. В итоге первая строчка должна выглядеть, соответственно, как
+где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. В VB 5.1.4 таких вхождений — 6 штук, по три каждого вида (номера строк с учётом вышеприведённой вставки: 3714, 3853, 3960, 4300, 5069, 5586). Здесь нужно добавить условие, что переменная кросс-сертификата определена. В итоге первая строчка должна выглядеть, соответственно, как
 <source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE)</source>
 или
 <source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE) && defined(VBOX_WITH_HARDENING)</source>
@@ -511,11 +530,12 @@ VBOX_WITH_VBOX_IMG := 1</source>
 Начинаем со сборки 64-битной версии. Открываем консоль, выполняем команды:
 <source lang=".bat">cd /d C:\Devel\VirtualBox-src
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+COLOR 07
 set BUILD_TARGET_ARCH=amd64
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-libcurl=C:\Programs\curl\x64 --with-Qt5=C:\Programs\Qt\5.6.1-x64 --with-python=C:\Programs\Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-5.1.2_OSE-r108956-MultiArch_amd64.msi</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-5.1.4_OSE-r110228-MultiArch_amd64.msi</source>
 Для сборки VB 5.0.x, соответственно, нужно вместо <code>--with-Qt5</code> указать флаг <code>--with-Qt4=C:\Programs\Qt\4.8.7-x64</code><br/>
 Скрипт <code>configure.vbs</code> проверяет окружение и создаёт файлы конфигурации (<code>AutoConfig.kmk</code> и <code>env.bat</code>). Первый запуск <code>kmk</code> выполняет сборку бинарных компонентов и помещает их в каталог <code>out\win.amd64\bin\</code>. Последняя команда собирает из этих компонентов промежуточный MSI-архив. Важные моменты:
 <ul>
@@ -529,11 +549,12 @@ kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-5.1.2_O
 Теперь собираем 32-битную версию и пакуем весь комплект в единый инсталлятор. Открываем новую консоль, выполняем команды:
 <source lang=".bat">cd /d C:\Devel\VirtualBox-src
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+COLOR 07
 set BUILD_TARGET_ARCH=x86
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.1-x32 --with-python=C:\Programs\Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.1.2_OSE-r108956-MultiArch.exe</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.1.4_OSE-r110228-MultiArch.exe</source>
 Аналогично, суффикс «_OSE» в имени итогового файла надо поменять на свой, а при сборке VB 5.0.x — использовать Qt4 вместо Qt5.
 </li>
 </ol>
@@ -544,12 +565,24 @@ kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.1.2_OSE-r108956
 <spoiler title="Единый батник">
 <source lang=".bat">@echo off
 
-set VERSION=5.1.2-r108956
+cd /d %~dp0
+
+for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_VERSION_MAJOR = " Config.kmk') do SET VBOX_VER_MJ=%%i
+for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_VERSION_MINOR = " Config.kmk') do SET VBOX_VER_MN=%%i
+for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_VERSION_BUILD = " Config.kmk') do SET VBOX_VER_BLD=%%i
+for /f "tokens=6" %%i in ('findstr /C:"$Rev: " Config.kmk') do SET VBOX_REV=%%i
+for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER = " Config.kmk') do SET VBOX_VER_PUB=%%i
+
+set VERSION=%VBOX_VER_MJ%.%VBOX_VER_MN%.%VBOX_VER_BLD%%VBOX_VER_PUB%-r%VBOX_REV%
+set VBOX_VER_MJ=
+set VBOX_VER_MN=
+set VBOX_VER_BLD=
+set VBOX_VER_PUB=
 
 del /q build-tmp.cmd 2>nul
 
 echo.
-echo ### BUILDING x64 VERSION ###
+echo ### %VERSION%: BUILDING x64 VERSION ###
 echo.
 
 echo @echo off>> build-tmp.cmd
@@ -569,7 +602,7 @@ if ERRORLEVEL 1 exit /b 1
 del /q build-tmp.cmd 2>nul
 
 echo.
-echo ### BUILDING x32 VERSION ###
+echo ### %VERSION%: BUILDING x32 VERSION ###
 echo.
 
 echo @echo off>> build-tmp.cmd
@@ -628,4 +661,13 @@ echo.</source>
 <li>Обновлены версии используемых библиотек.</li>
 <li>В итоговый сборочный скрипт добавлена проверка на корректность завершения каждой стадии.</li>
 <li>Исправлены мелкие недочёты.</li>
+</ol>
+<h5>• Обновление статьи от 6.09.2016</h5>
+<ol>
+<li>Внесены уточнения с учётом изменений в VB 5.1.4.</li>
+<li>Обновлены версии используемых библиотек.</li>
+<li>Добавлено использование NASM для сборки OpenSSL.</li>
+<li>cURL теперь собирается с поддержкой OpenSSL, потому что иначе не работают функции проверки обновлений и загрузки пакета расширений.</li>
+<li>Доработан комбинированный скрипт сборки, чтобы версия определялась автоматически.</li>
+<li>Различные мелкие правки.</li>
 </ol>
