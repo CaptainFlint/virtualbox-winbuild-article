@@ -124,7 +124,7 @@ wget или его альтернатива будет использовать�
 <tr><td>MinGW Binutils</td><td>2.13.90-20021006-2</td><td><code>C:\Programs\mingw32\</code></td></tr>
 <tr><td>MinGW-w64</td><td>4.5.4</td><td><code>C:\Programs\mingw64\</code></td></tr>
 <tr><td>SDL</td><td>1.2.15</td><td><code>C:\Programs\SDL\{x32|x64}\</code></td></tr>
-<tr><td>cURL</td><td>7.50.1</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
+<tr><td>cURL</td><td>7.50.3</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
 <tr><td>OpenSSL</td><td>1.0.2h</td><td><code>C:\Programs\OpenSSL\{x32|x64}\</code></td></tr>
 <tr><td>gSOAP</td><td>2.7.16</td><td><code>C:\Programs\gSOAP\</code></td></tr>
 <tr><td>MiKTeX Portable</td><td>2.9.5719</td><td><code>C:\Programs\MiKTeX\</code></td></tr>
@@ -199,7 +199,7 @@ COLOR 07
 SET QTDIR=C:\Programs\Qt\%QTVER%-x32
 SET PATH=%QTDIR%\bin;%PATH%
 SET QMAKESPEC=win32-msvc2010</source>
-Цвет шрифта можно сбросить командой <code>color</code> без параметров.
+Команда <code>color</code> отключает зелёный цвет шрифта, устанавливаемый скриптом <code>SetEnv.Cmd</code>.
 </li>
 <li>
 Теперь запускаем <code>configure.bat</code> из каталога <code>5.6.1-src</code>. Поскольку бо́льшая часть Qt в VB не используется, можно сильно ускорить сборку, отключив ненужные компоненты, но необходимо учитывать, что к некоторым опциям VB относится очень щепетильно. В частности, я наткнулся на следующее:
@@ -237,6 +237,9 @@ MinGW-w64 состоит из одного архива и распаковыв�
 <li>Аналогично для 32-битной версии: перемещаем содержимое <code>C:\Programs\SDL\x32\lib\x86\</code> на уровень выше, каталоги <code>C:\Programs\SDL\x32\lib\x86</code> и <code>x64</code> удаляем.</li>
 </ol>
 <br/>
+<h5>• NASM</h5>
+Распаковываем архив <code>nasm-2.12.02-win64.zip</code> в <code>C:\Programs\</code>, переименовываем полученный каталог <code>nasm-2.12.02</code> в <code>nasm</code>.<br/>
+<br/>
 <h5>• OpenSSL</h5>
 <ol>
 <li>Распаковываем архив OpenSSL два раза в каталог <code>C:\Programs\OpenSSL\</code>, переименовывая полученный подкаталог из <code>openssl-1.0.2h</code>, соответственно, в <code>openssl-1.0.2h-x32</code> и <code>openssl-1.0.2h-x64</code>.</li>
@@ -268,19 +271,19 @@ nmake -f ms\ntdll.mak install</source>
 <br/>
 <h5>• cURL</h5>
 <ol>
-<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.50.1</code> в <code>curl-7.50.1-x32</code>.</li>
+<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.50.3</code> в <code>curl-7.50.3-x32</code>.</li>
 <li>
-Открываем в редакторе файл <code>C:\Programs\curl\curl-7.50.1-x32\lib\Makefile.vc10</code>, находим там в районе строки 122 следующий код:
+Открываем в редакторе файл <code>C:\Programs\curl\curl-7.50.3-x32\lib\Makefile.vc10</code>, находим там в районе строки 122 следующий код:
 <source>CFLAGS       = $(CFLAGS)</source>
 и заменяем на:
 <source>CFLAGS       = $(CFLAGS) /DCURL_DISABLE_LDAP</source>
 Если этого не сделать, то при сборке VB полезут ошибки линковки.
 </li>
-<li>Делаем копию каталога <code>curl-7.50.1-x32</code> под именем <code>curl-7.50.1-x64</code>.</li>
+<li>Делаем копию каталога <code>curl-7.50.3-x32</code> под именем <code>curl-7.50.3-x64</code>.</li>
 <li>Открываем консоль, собираем 32-битную версию библиотеки (сам curl не потребуется) и копируем необходимые файлы в целевой каталог:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
 COLOR 07
-cd /d C:\Programs\curl\curl-7.50.1-x32\lib
+cd /d C:\Programs\curl\curl-7.50.3-x32\lib
 md C:\Programs\curl\x32
 set INCLUDE=c:\Programs\OpenSSL\x32\include;%INCLUDE%
 set LIB=C:\Programs\OpenSSL\x32\lib;%LIB%
@@ -293,7 +296,7 @@ xcopy /E ..\include\curl ..\..\x32\include\curl\</source>
 Собираем 64-битную версию, открыв новую консоль и выполнив команды:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
-cd /d C:\Programs\curl\curl-7.50.1-x64\lib
+cd /d C:\Programs\curl\curl-7.50.3-x64\lib
 md C:\Programs\curl\x64
 set INCLUDE=c:\Programs\OpenSSL\x64\include;%INCLUDE%
 set LIB=C:\Programs\OpenSSL\x64\lib;%LIB%
@@ -302,7 +305,7 @@ nmake /f Makefile.vc10 MACHINE=x64 cfg=release-ssl
 copy *.lib ..\..\x64
 xcopy /E ..\include\curl ..\..\x64\include\curl\</source>
 </li>
-<li>Каталоги <code>C:\Programs\curl\curl-7.50.1-x32</code> и <code>curl-7.50.1-x64</code> можно удалять.</li>
+<li>Каталоги <code>C:\Programs\curl\curl-7.50.3-x32</code> и <code>curl-7.50.3-x64</code> можно удалять.</li>
 </ol>
 <br/>
 <h5>• gSOAP</h5>
