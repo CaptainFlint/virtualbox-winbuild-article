@@ -4,7 +4,7 @@
 <br/>
 Как известно большинству пользователей Windows-версии VirtualBox (далее — <em>VB</em>, не путать с Visual Basic), в релизе 4.3.14 разработчики этой программы добавили дополнительный механизм защиты, называемый «hardening» (что можно перевести как «упрочнение»), который привёл к многочисленным проблемам совместимости VB с антивирусами, драйверами крипто-модулей и даже отдельными обновлениями самой Windows, в результате чего виртуальные машины попросту отказываются запускаться. В лучшем случае пользователю приходится ждать около месяца, пока проблемная программа, о которой он сообщит разработчикам, окажется учтена в следующем релизе VB. В худшем случае придётся либо удалять конфликтующую программу (или системное обновление), либо откатывать VB до версии 4.3.12 — последней, в которой не было этой защиты. Многочисленные предложения к разработчикам о добавлении пользовательского списка исключений или опции, отключающей защиту целиком, остаются без внимания. Единственный внятный ответ с их стороны звучит так: «не хотите защиту — компилируйте из исходников сами». Что ж, придётся этим заняться.<br/>
 <br/>
-Несмотря на то, что процедура сборки <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">описана</a> на официальной вики, она неполна и кое в чём устарела, а сама сборка так и норовит выдать странные ошибки. Поэтому когда я всё-таки пробился до конца сей процедуры, я решил, что её описание заслуживает отдельной статьи. Инструкция адаптирована для VB версии 5.1.4, но я сохранил инструкции и для 5.0.26 (кроме номеров строк) на случай, если кто-то пока не планирует переход на 5.1.<br/>
+Несмотря на то, что процедура сборки <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">описана</a> на официальной вики, она неполна и кое в чём устарела, а сама сборка так и норовит выдать странные ошибки. Поэтому когда я всё-таки пробился до конца сей процедуры, я решил, что её описание заслуживает отдельной статьи. Инструкция адаптирована для VB версии 5.1.6, но я сохранил инструкции и для 5.0.26 (кроме номеров строк) на случай, если кто-то пока не планирует переход на 5.1.<br/>
 <br/>
 <cut text="Я заинтересован" />
 <h4><img src="https://habrastorage.org/getpro/geektimes/post_images/9f8/505/49b/9f850549b13e79dc47d23f5f9e994379.png"/> Содержание</h4>
@@ -252,7 +252,7 @@ perl Configure VC-WIN32 --prefix=C:\Programs\OpenSSL\x32
 ms\do_nasm
 nmake -f ms\ntdll.mak
 nmake -f ms\ntdll.mak install</source>
-Если вы не хотите использовать NASM, исключите из инструкции выше модификацию переменной <code>PATH</code>, добавьте к вызову <code>Configure</code> параметр <code>no-asm</code>, а вместо скрипта <code>ms\do_nasm</code> запускайте <code>ms\do_ms</code>.
+Если вы не хотите использовать NASM, исключите отсюда модификацию переменной <code>PATH</code>, добавьте к вызову <code>Configure</code> параметр <code>no-asm</code>, а вместо скрипта <code>ms\do_nasm</code> запускайте <code>ms\do_ms</code>.
 </li>
 <li>
 Открываем новую консоль, собираем и устанавливаем 64-битную версию:
@@ -366,12 +366,12 @@ nmake /f Makefile.msvc install</source>
 Прежде чем приступать к сборке, нам ещё потребуется внести кое-какие правки в исходные коды самого VirtualBox. Так что переходим в каталог <code>C:\Devel\VirtualBox-src</code> и начинаем:
 <ol>
 <li>
-Открываем файл <code>configure.vbs</code>, находим код (строка 1062):
+Открываем файл <code>configure.vbs</code>, находим код (строка 1063):
 <source lang="vbscript">if Shell(DosSlashes(strPathVC & "/bin/cl.exe"), True) <> 0 then</source>
 и заменяем на следующий:
 <source lang="vbscript">if Shell(DosSlashes(strPathVC & "/bin/cl.exe") & " /?", True) <> 0 then</source>
 Этот кусок отвечает за поиск и проверку компилятора, но не учитывает, что вызов <code>cl.exe</code> без аргументов возвращает ошибку (что трактуется как неподходящий компилятор). Добавление параметра «<code>/?</code>» запрашивает вывод справки, и код возврата перестаёт быть ошибочным.<br/>
-Далее в этом же файле находим функцию <code>CheckForCurlSub</code> и удаляем в ней проверку наличия <code>libcurl.dll</code> (строка 2014):
+Далее в этом же файле находим функцию <code>CheckForCurlSub</code> и удаляем в ней проверку наличия <code>libcurl.dll</code> (строка 2015):
 <source lang="vbscript">    And LogFindFile(strPathCurl, "libcurl.dll") <> "" _</source>
 Сборка VB использует статическую линковку с libcurl, поэтому DLL ему не нужна (и мы её не собирали). Но по какой-то причине он проверяет её присутствие. Вместо удаления кода можно просто собрать DLL-вариант библиотеки или создать пустой файл с таким именем, это уже на ваш вкус.
 </li>
@@ -422,30 +422,23 @@ VBoxRemPrimary_SOURCES.win.amd64 = $(VBoxREMImp_0_OUTDIR)/VBoxREMRes.o</source>
 </li>
 <li>Открываем файл <code>doc\manual\Makefile.kmk</code> и удаляем оттуда все подстроки вида «<code> --nonet</code>». Этот аргумент у утилит обработки XML-файлов запрещает автоматическое скачивание DTD-схем, поэтому для успешной обработки требуется либо самостоятельно скачать все шаблоны, разместить их на локальном диске и прописать пути к ним в специальных переменных, либо отказаться от этого запрета, удалив параметр. Я пошёл по второму пути.</li>
 <li>
-Открываем файл <code>src\VBox\Additions\Makefile.kmk</code>, находим там правило для сборки ISO-образа гостевых дополнений (строки 276-313), начинающееся с объявления:
+Открываем файл <code>src\VBox\Additions\Makefile.kmk</code>, находим там правило для сборки ISO-образа гостевых дополнений (строки 277-314), начинающееся с объявления:
 <source>$(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso: \</source>
 Удаляем весь этот блок, вместо него вставляем единственную команду для загрузки официального образа:
 <source>$(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso:
 	$(TOOL_WGET_FETCH) http://download.virtualbox.org/virtualbox/$(VBOX_VERSION_STRING_RAW)/VBoxGuestAdditions_$(VBOX_VERSION_STRING_RAW).iso -O $@</source>
 </li>
 <li>
-По умолчанию собранный VB получает суффикс «OSE» в номере версии («5.1.4_OSE»). Если вас это не устраивает, можно поменять суффикс в файле <code>Config.kmk</code> в строке 1291, заменив код
-<source> VBOX_BUILD_PUBLISHER = _OSE</source>
-на:
-<source> VBOX_BUILD_PUBLISHER =</source>
-или на любую другую строку, которая вам подходит. Теоретически, этот параметр должен переопределяться локальным конфигом (см. следующий пункт), но что-то где-то оказалось не учтено, и для корректной сборки приходится менять именно здесь.
-</li>
-<li>
 Если VB собирается с подписыванием, то для большинства исполняемых файлов выставляется флаг принудительной проверки подписи (опция компоновщика <code>/IntegrityCheck</code>). Если у вас полноценный сертификат, это не проблема. Если нет — VB просто откажется запускаться после установки (даже в тестовом режиме). Я модифицировал файл <code>Config.kmk</code> таким образом, чтобы флаг добавлялся только при использовании полноценного сертификата (сертификат считается полноценным, если в файле <code>LocalConfig.kmk</code> задан кросс-сертификат; см. ниже). Набор исправлений заключается в следующем.
 <ul>
-<li>Вставить блок определения переменной <code>VBOX_INTEGRITY_CHECK</code>, которая будет использоваться вместо фиксированной опции. Я добавил этот блок кода перед строкой «<code>define VBOX_RE_SIGN_DLL_INTERNAL_FN</code>» (номер строки 3278):
+<li>Вставить блок определения переменной <code>VBOX_INTEGRITY_CHECK</code>, которая будет использоваться вместо фиксированной опции. Я добавил этот блок кода перед строкой «<code>define VBOX_RE_SIGN_DLL_INTERNAL_FN</code>» (номер строки 3271):
 <source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE)
 	VBOX_INTEGRITY_CHECK := /IntegrityCheck
 else
 	VBOX_INTEGRITY_CHECK := /IntegrityCheck:NO
 endif</source>
 </li>
-<li>Чуть ниже, в строке 3294 (номер строки дан с учётом предыдущей вставки) будет команда:
+<li>Чуть ниже, в строке 3287 (номер строки дан с учётом предыдущей вставки) будет команда:
 <source>	$(VBOX_VCC_EDITBIN) /LargeAddressAware /DynamicBase /NxCompat /Release /IntegrityCheck \
 		/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
 		"$@"</source>
@@ -459,7 +452,7 @@ endif</source>
 <source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_WITH_HARDENING)
  TEMPLATE_XXXXXX_LDFLAGS          += -IntegrityCheck
 endif</source>
-где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. В VB 5.1.4 таких вхождений — 6 штук, по три каждого вида (номера строк с учётом вышеприведённой вставки: 3714, 3853, 3960, 4300, 5069, 5586). Здесь нужно добавить условие, что переменная кросс-сертификата определена. В итоге первая строчка должна выглядеть, соответственно, как
+где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. В VB 5.1.6 таких вхождений — 6 штук, по три каждого вида (номера строк с учётом вышеприведённой вставки: 3807, 3946, 4064, 4485, 5296, 5837). Здесь нужно добавить условие, что переменная кросс-сертификата определена. В итоге первая строчка должна выглядеть, соответственно, как
 <source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE)</source>
 или
 <source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE) && defined(VBOX_WITH_HARDENING)</source>
@@ -509,7 +502,8 @@ TOOL_WGET_FETCH := C:\Programs\wget\bin\wget.exe
 VBOX_INSTALLER_LANGUAGES := en_US
 VBOX_WITH_TESTCASES :=
 VBOX_WITH_VALIDATIONKIT :=
-VBOX_WITH_VBOX_IMG := 1</source>
+VBOX_WITH_VBOX_IMG := 1
+VBOX_BUILD_PUBLISHER := _OSE</source>
 В вышеприведённом шаблоне необходимо кое-что подправить:
 <ul>
 <li>Если для сборки используется Qt4 (в частности, в VB 5.0.x), то вместо переменных <code>VBOX_WITH_QT_PAYLOAD</code> и <code>VBOX_WITH_QTGUI_V5</code> надо задать:
@@ -518,8 +512,9 @@ VBOX_WITH_VBOX_IMG := 1</source>
 <li>В переменных <code>VBOX_CERTIFICATE_SUBJECT_NAME</code> и <code>VBOX_CERTIFICATE_SHA2_SUBJECT_NAME</code> потребуется указать имена используемых вами сертификатов для подписи SHA-1 и SHA-256, соответственно.</li>
 <li>В переменных <code>VBOX_CERTIFICATE_FINGERPRINT</code> и <code>VBOX_CERTIFICATE_SHA2_FINGERPRINT</code> пропишите цифровые отпечатки, которые были скопированы ранее из консоли управления сертификатами.</li>
 <li>Если у вас не самоподписанный сертификат, а покупной, то удалите строчки с переменными <code>VBOX_CROSS_CERTIFICATE_FILE_ARGS</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE_ARGS</code>, а в переменных <code>VBOX_CROSS_CERTIFICATE_FILE</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE</code> (без «<code>_ARGS</code>») задайте полный путь к файлу кросс-сертификата (без него драйверы не будут считаться подписанными). Его можно найти на сайте компании, выпустившей сертификат, или <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/dn170454(v=vs.85).aspx">у Microsoft</a>.</li>
-<li>Для более тонкой настройки подписывания имеется множество других переменных, с помощью которых можно задать хранилище, адрес сервера для наложения временно́й метки или вообще задать произвольный дополнительный набор аргументов для утилиты <code>signtool</code>. В файле <code>Config.kmk</code> под комментарием «Code Signing» (начиная со строки 2923) можно посмотреть, какие там переменные определяются и как они используются.</li>
+<li>Для более тонкой настройки подписывания имеется множество других переменных, с помощью которых можно задать хранилище, адрес сервера для наложения временно́й метки или вообще задать произвольный дополнительный набор аргументов для утилиты <code>signtool</code>. В файле <code>Config.kmk</code> под комментарием «Code Signing» (начиная со строки 3016) можно посмотреть, какие там переменные определяются и как они используются.</li>
 <li>Если вы устанавливали какие-то из программ в каталоги, отличающиеся от моих, нужно поправить пути в соответствующих переменных. Обратите внимание, что если путь установки WiX содержит пробелы, то необходимо преобразовать его в короткий. Обязательно проверьте, чему он равен на вашей системе (даже для одинаковых длинных имён он может оказаться различным). Для этого можно воспользоваться командой <code>dir /x</code>. Трюк со взятием в кавычки здесь, увы, не работает.</li>
+<li>Переменная <code>VBOX_BUILD_PUBLISHER</code> задаёт брэндированный суффикс в номере версии. По умолчанию это «_OSE» (т. е. продукт имеет версию «5.1.6_OSE»). Здесь вы можете поменять его на что-то другое или даже на пустую строку, чтобы убрать суффикс совсем (если переменная отсутствует, применится суффикс «_OSE»). До версии 5.1.6 приходилось править значение в файле <code>Config.kmk</code>, но теперь это поправили, и можно задавать его в локальном конфигурационном файле.</li>
 </ul>
 Остальные переменные используются в основном для выбора собираемых компонентов. Ну и главная строка, ради которой всё и затевалось, идёт самой первой: отключаем hardening.<br/>
 </li>
@@ -538,14 +533,14 @@ set BUILD_TARGET_ARCH=amd64
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-libcurl=C:\Programs\curl\x64 --with-Qt5=C:\Programs\Qt\5.6.1-x64 --with-python=C:\Programs\Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-5.1.4_OSE-r110228-MultiArch_amd64.msi</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-5.1.6_OSE-r110634-MultiArch_amd64.msi</source>
 Для сборки VB 5.0.x, соответственно, нужно вместо <code>--with-Qt5</code> указать флаг <code>--with-Qt4=C:\Programs\Qt\4.8.7-x64</code><br/>
 Скрипт <code>configure.vbs</code> проверяет окружение и создаёт файлы конфигурации (<code>AutoConfig.kmk</code> и <code>env.bat</code>). Первый запуск <code>kmk</code> выполняет сборку бинарных компонентов и помещает их в каталог <code>out\win.amd64\bin\</code>. Последняя команда собирает из этих компонентов промежуточный MSI-архив. Важные моменты:
 <ul>
 <li>Слэши в последней команде должны быть обязательно прямыми. С обратными <code>kmk</code> не найдёт сборочные правила.</li>
 <li>Хоть мы собираем 64-битную версию, архив располагается в подкаталоге <code>out\win.x86\…</code>, потому что финальная сборка будет производиться из 32-битного окружения.</li>
 <li>Если вы меняли суффикс версии, то «_OSE» в имени MSI-файла необходимо поправить на то, что вы задали в переменной <code>VBOX_BUILD_PUBLISHER</code>.</li>
-<li>Ревизию в имени MSI-файла (108956) можно найти в файле <code>Config.kmk</code> в переменной <code>VBOX_SVN_REV_FALLBACK</code> (строка 6548).</li>
+<li>Ревизию в имени MSI-файла (110634) можно найти в файле <code>Config.kmk</code> в переменной <code>VBOX_SVN_REV_FALLBACK</code> (строка 6850).</li>
 </ul>
 </li>
 <li>
@@ -557,7 +552,7 @@ set BUILD_TARGET_ARCH=x86
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.1-x32 --with-python=C:\Programs\Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.1.4_OSE-r110228-MultiArch.exe</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.1.6_OSE-r110634-MultiArch.exe</source>
 Аналогично, суффикс «_OSE» в имени итогового файла надо поменять на свой, а при сборке VB 5.0.x — использовать Qt4 вместо Qt5.
 </li>
 </ol>
@@ -569,12 +564,11 @@ kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.1.4_OSE-r110228
 <source lang=".bat">@echo off
 
 cd /d %~dp0
-
-for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_VERSION_MAJOR = " Config.kmk') do SET VBOX_VER_MJ=%%i
-for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_VERSION_MINOR = " Config.kmk') do SET VBOX_VER_MN=%%i
-for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_VERSION_BUILD = " Config.kmk') do SET VBOX_VER_BLD=%%i
+for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_VERSION_MAJOR =" Config.kmk') do SET VBOX_VER_MJ=%%i
+for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_VERSION_MINOR =" Config.kmk') do SET VBOX_VER_MN=%%i
+for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_VERSION_BUILD =" Config.kmk') do SET VBOX_VER_BLD=%%i
 for /f "tokens=6" %%i in ('findstr /C:"$Rev: " Config.kmk') do SET VBOX_REV=%%i
-for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER = " Config.kmk') do SET VBOX_VER_PUB=%%i
+for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER :=" LocalConfig.kmk') do SET VBOX_VER_PUB=%%i
 
 set VERSION=%VBOX_VER_MJ%.%VBOX_VER_MN%.%VBOX_VER_BLD%%VBOX_VER_PUB%-r%VBOX_REV%
 set VBOX_VER_MJ=
@@ -584,15 +578,15 @@ set VBOX_VER_PUB=
 
 del /q build-tmp.cmd 2>nul
 
-echo.
-echo ### %VERSION%: BUILDING x64 VERSION ###
-echo.
-
 echo @echo off>> build-tmp.cmd
 echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7>> build-tmp.cmd
 echo color 07>> build-tmp.cmd
+echo echo.>> build-tmp.cmd
+echo echo ### %VERSION%: BUILDING x64 VERSION ###>> build-tmp.cmd
+echo echo.>> build-tmp.cmd
 echo set BUILD_TARGET_ARCH=amd64>> build-tmp.cmd
 echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-libcurl=C:\Programs\curl\x64 --with-Qt5=C:\Programs\Qt\5.6.1-x64 --with-python=C:\Programs\Python>> build-tmp.cmd
+echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 echo call env.bat>> build-tmp.cmd
 echo kmk>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
@@ -604,15 +598,15 @@ if ERRORLEVEL 1 exit /b 1
 
 del /q build-tmp.cmd 2>nul
 
-echo.
-echo ### %VERSION%: BUILDING x32 VERSION ###
-echo.
-
 echo @echo off>> build-tmp.cmd
 echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7>> build-tmp.cmd
 echo color 07>> build-tmp.cmd
+echo echo.>> build-tmp.cmd
+echo echo ### %VERSION%: BUILDING x32 VERSION ###>> build-tmp.cmd
+echo echo.>> build-tmp.cmd
 echo set BUILD_TARGET_ARCH=x86>> build-tmp.cmd
 echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.1-x32 --with-python=C:\Programs\Python>> build-tmp.cmd
+echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 echo call env.bat>> build-tmp.cmd
 echo kmk>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
@@ -645,7 +639,7 @@ echo.</source>
 <br/>
 Огромное количество аспектов сборочной системы VB осталось за кадром: как из-за нежелания раздувать текст, так и по причине моей лени, когда, найдя какой-то обходной путь для очередной проблемы, я не лез в глубины системы сборки, а поскорее переходил к следующему этапу. В конце концов, моей главной задачей было не найти оптимальный путь, а собрать, наконец, свой вариант актуального VirtualBox'а: сидеть на 4.3.12 уже поднадоело, но я не мог обновлять один из своих основных рабочих инструментов на нечто, что в любой момент может просто отказаться работать на неопределённый срок.<br/>
 <br/>
-Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Для тех, кому лень поднимать всё вышеописанное нагромождение программ, но интересно расковырять получающийся в итоге дистрибутив, я выложил инсталляторы на Яндекс-диск: <a href="https://yadi.sk/d/sSYytnVBtiZai">5.1.2</a>, <a href="https://yadi.sk/d/D_tc3LP2tiZan">5.0.26</a>. Все драйверы в них (да и остальные файлы) подписаны недоверенным сертификатом, так что в 64-битной Windows этот вариант VB заработает только в тестовом режиме. Если имеются вопросы, пожелания, предложения — велкам в комментарии или в личку. И да пребудет с вами Open Source!<br/>
+Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Для тех, кому лень поднимать всё вышеописанное нагромождение программ, но интересно расковырять получающийся в итоге дистрибутив, я выложил инсталляторы на Яндекс-диск: <a href="https://yadi.sk/d/sSYytnVBtiZai">5.1.6</a>, <a href="https://yadi.sk/d/D_tc3LP2tiZan">5.0.26</a>. Все драйверы в них (да и остальные файлы) подписаны недоверенным сертификатом, так что в 64-битной Windows этот вариант VB заработает только в тестовом режиме. Если имеются вопросы, пожелания, предложения — велкам в комментарии или в личку. И да пребудет с вами Open Source!<br/>
 <br/>
 <anchor>history</anchor><h4><img src="https://habrastorage.org/getpro/geektimes/post_images/9f8/505/49b/9f850549b13e79dc47d23f5f9e994379.png"/> Дополнения</h4><br/>
 <h5>• Обновление статьи от 24.05.2016</h5>
@@ -665,9 +659,10 @@ echo.</source>
 <li>В итоговый сборочный скрипт добавлена проверка на корректность завершения каждой стадии.</li>
 <li>Исправлены мелкие недочёты.</li>
 </ol>
-<h5>• Обновление статьи от 6.09.2016</h5>
+<br/>
+<h5>• Обновление статьи от 14.09.2016</h5>
 <ol>
-<li>Внесены уточнения с учётом изменений в VB 5.1.4.</li>
+<li>Внесены уточнения с учётом изменений в VB 5.1.6.</li>
 <li>Обновлены версии используемых библиотек.</li>
 <li>Добавлено использование NASM для сборки OpenSSL.</li>
 <li>cURL теперь собирается с поддержкой OpenSSL, потому что иначе не работают функции проверки обновлений и загрузки пакета расширений.</li>
