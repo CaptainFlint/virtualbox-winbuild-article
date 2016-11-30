@@ -173,7 +173,7 @@ SET QMAKESPEC=win32-msvc2010</source>
 <source lang=".bat">..\5.6.2-src\configure.bat -prefix c:\Programs\Qt\5.6.2-x32 -mp -opensource -confirm-license -nomake tests -nomake examples -no-compile-examples -release -shared -pch -no-ltcg -accessibility -no-sql-sqlite -opengl desktop -no-openvg -no-nis -no-iconv -no-evdev -no-mtdev -no-inotify -no-eventfd -largefile -no-system-proxies -qt-zlib -qt-pcre -no-icu -qt-libpng -qt-libjpeg -qt-freetype -no-fontconfig -qt-harfbuzz -no-angle -incredibuild-xge -no-plugin-manifests -qmake -qreal double -rtti -strip -no-ssl -no-openssl -no-libproxy -no-dbus -no-audio-backend -no-wmf-backend -no-qml-debug -no-direct2d -directwrite -no-style-fusion -native-gestures -skip qt3d -skip qtactiveqt -skip qtandroidextras -skip qtcanvas3d -skip qtconnectivity -skip qtdeclarative -skip qtdoc -skip qtenginio -skip qtgraphicaleffects -skip qtlocation -skip qtmacextras -skip qtmultimedia -skip qtquickcontrols -skip qtquickcontrols2 -skip qtscript -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtwayland -skip qtwebchannel -skip qtwebengine -skip qtwebsockets -skip qtwebview -skip qtx11extras -skip qtxmlpatterns</source>
 </li>
 <li>
-Указанный каталог установки (опция <code>-prefix</code>) Qt записывает внутрь исходного кода при конфигурировании, так что собранная библиотека будет помнить этот путь. Это приводит к тому, что при запуске Qt-приложение по умолчанию будет искать плагины по этому пути, и только если ничего не нашлось, обратится к собственному каталогу. В большинстве ситуаций это работает корректно, но если вдруг на машине, где установлен VirtualBox, собранный с такой версией Qt, по тому же пути <code>c:\Programs\Qt\5.6.2-x32</code> окажется другая сборка Qt (с другими флагами), то VB свалится с ошибкой.<br/>
+Указанный каталог установки (опция <code>-prefix</code>) Qt записывает внутрь исходного кода при конфигурировании, так что собранная библиотека будет помнить этот путь. Это приводит к тому, что при запуске Qt-приложение по умолчанию будет искать плагины по этому пути, и только если ничего не нашлось, обратится к собственному каталогу. В большинстве ситуаций это работает корректно, но если вдруг на целевой машине в каталоге <code>c:\Programs\Qt\5.6.2-x32</code> окажется отличающаяся сборка Qt (с другими флагами), то VB при запуске свалится с ошибкой.<br/>
 Избежать этого можно двумя путями: либо добавить в каталог VB файл <code>qt.conf</code> с содержимым:
 <source>[Paths]
 Plugins=.</source>
@@ -285,8 +285,6 @@ xcopy /E ..\include\curl ..\..\x64\include\curl\</source>
 </ol>
 <br/>
 <h5>• gSOAP</h5>
-<ol>
-<li>
 Открываем архив, заходим в подкаталог <code>gsoap-2.8\gsoap</code> и распаковываем содержимое этого подкаталога в <code>C:\Programs\gSOAP\</code>. Для адаптации кода к OpenSSL 1.1.x требуется наложить специальный <a href="https://github.com/CaptainFlint/virtualbox-win-build/blob/master/gsoap-openssl110.patch">патч</a> (автор: <a href="https://sourceforge.net/p/gsoap2/patches/166/">Mattias Ellert</a>). На всякий случай, чтобы не зависеть от сторонних сервисов, прикладываю полное содержимое патча.
 <spoiler title="Патч совместимости gSOAP с OpenSSL 1.1.x">
 <source lang="diff">
@@ -457,9 +455,7 @@ diff -ur gsoap-2.8.34.orig/gsoap/VisualStudio2005/wsdl2h/wsdl2h/stdsoap2.cpp gso
                else
                { unsigned char *tmp = NULL;
 </source></spoiler>
-Можно это сделать вручную (формат достаточно очевидный: открываем поочерёдно указанные файлы, удаляем строчки, отмеченные минусами, и добавляем отмеченные плюсами; остальные строки помогают определить контекст), а можно взять стандартную утилиту patch, портированную для Windows, и натравить её.
-</li>
-</ol>
+Можно это сделать вручную (формат достаточно очевидный: открываем поочерёдно указанные файлы, удаляем строчки, отмеченные минусами, и добавляем отмеченные плюсами; остальные строки помогают определить контекст), а можно взять стандартную утилиту patch, портированную для Windows, и натравить её.<br/>
 <br/>
 <h5>• MiKTeX</h5>
 <ol>
@@ -511,9 +507,9 @@ nmake /f Makefile.msvc install</source>
 <ul>
 <li>
 Находим код (строка 1063):
-<source lang="vbscript">if Shell(DosSlashes(strPathVC & "/bin/cl.exe"), True) <> 0 then</source>
+<source lang="vbscript">if Shell(DosSlashes(strPathVC &amp; "/bin/cl.exe"), True) &lt;&gt; 0 then</source>
 и заменяем на следующий:
-<source lang="vbscript">if Shell(DosSlashes(strPathVC & "/bin/cl.exe") & " /?", True) <> 0 then</source>
+<source lang="vbscript">if Shell(DosSlashes(strPathVC &amp; "/bin/cl.exe") &amp; " /?", True) &lt;&gt; 0 then</source>
 Этот кусок отвечает за поиск и проверку компилятора, но не учитывает, что вызов <code>cl.exe</code> без аргументов возвращает ошибку (что трактуется как неподходящий компилятор). Добавление параметра «<code>/?</code>» запрашивает вывод справки, и код возврата перестаёт быть ошибочным.
 </li>
 <li>
@@ -525,31 +521,32 @@ nmake /f Makefile.msvc install</source>
 </li>
 <li>
 Чуть ниже находим команды печати переменных в конфигурационный файл (строка 1939):
-<source lang="vbscript">   CfgPrint "SDK_VBOX_OPENSSL_LIBS := " & strPathSsl & "/lib/ssleay32.lib" & " " & strPathSsl & "/lib/libeay32.lib"
-   CfgPrint "SDK_VBOX_BLD_OPENSSL_LIBS := " & strPathSsl & "/lib/ssleay32.lib" & " " & strPathSsl & "/lib/libeay32.lib"</source>
+<source lang="vbscript">   CfgPrint "SDK_VBOX_OPENSSL_LIBS := " &amp; strPathSsl &amp; "/lib/ssleay32.lib" &amp; " " &amp; strPathSsl &amp; "/lib/libeay32.lib"
+   CfgPrint "SDK_VBOX_BLD_OPENSSL_LIBS := " &amp; strPathSsl &amp; "/lib/ssleay32.lib" &amp; " " &amp; strPathSsl &amp; "/lib/libeay32.lib"</source>
 Опять же, заменяем имена файлов на корректные:
-<source lang="vbscript">   CfgPrint "SDK_VBOX_OPENSSL_LIBS := " & strPathSsl & "/lib/libssl.lib" & " " & strPathSsl & "/lib/libcrypto.lib"
-   CfgPrint "SDK_VBOX_BLD_OPENSSL_LIBS := " & strPathSsl & "/lib/libssl.lib" & " " & strPathSsl & "/lib/libcrypto.lib"</source>
+<source lang="vbscript">   CfgPrint "SDK_VBOX_OPENSSL_LIBS := " &amp; strPathSsl &amp; "/lib/libssl.lib" &amp; " " &amp; strPathSsl &amp; "/lib/libcrypto.lib"
+   CfgPrint "SDK_VBOX_BLD_OPENSSL_LIBS := " &amp; strPathSsl &amp; "/lib/libssl.lib" &amp; " " &amp; strPathSsl &amp; "/lib/libcrypto.lib"</source>
 </li>
 <li>
 Ещё чуть ниже идёт функция <code>CheckForSslSub</code>, выполняющая более детальную проверку OpenSSL, где тоже нужно поправить имена файлов. Находим код (строка 1952):
-<source lang="vbscript">    And LogFindFile(strPathSsl, "bin/ssleay32.dll") <> "" _
-    And LogFindFile(strPathSsl, "lib/ssleay32.lib") <> "" _
-    And LogFindFile(strPathSsl, "bin/libeay32.dll") <> "" _
-    And LogFindFile(strPathSsl, "lib/libeay32.lib") <> "" _</source>
+<source lang="vbscript">    And LogFindFile(strPathSsl, "bin/ssleay32.dll") &lt;&gt; "" _
+    And LogFindFile(strPathSsl, "lib/ssleay32.lib") &lt;&gt; "" _
+    And LogFindFile(strPathSsl, "bin/libeay32.dll") &lt;&gt; "" _
+    And LogFindFile(strPathSsl, "lib/libeay32.lib") &lt;&gt; "" _</source>
 и заменяем на:
-<source lang="vbscript">    And LogFindFile(strPathSsl, "bin/libssl*.dll") <> "" _
-    And LogFindFile(strPathSsl, "lib/libssl.lib") <> "" _
-    And LogFindFile(strPathSsl, "bin/libcrypto*.dll") <> "" _
-    And LogFindFile(strPathSsl, "lib/libcrypto.lib") <> "" _</source>
+<source lang="vbscript">    And LogFindFile(strPathSsl, "bin/libssl*.dll") &lt;&gt; "" _
+    And LogFindFile(strPathSsl, "lib/libssl.lib") &lt;&gt; "" _
+    And LogFindFile(strPathSsl, "bin/libcrypto*.dll") &lt;&gt; "" _
+    And LogFindFile(strPathSsl, "lib/libcrypto.lib") &lt;&gt; "" _</source>
 Здесь используются маски, поскольку для 32-битной и 64-битной версий OpenSSL имена библиотек различаются. К счастью, конфигуратор на это рассчитан.
 </li>
 <li>
 Далее находим функцию <code>CheckForCurlSub</code> и удаляем в ней проверку наличия <code>libcurl.dll</code> (строка 2015):
-<source lang="vbscript">    And LogFindFile(strPathCurl, "libcurl.dll") <> "" _</source>
+<source lang="vbscript">    And LogFindFile(strPathCurl, "libcurl.dll") &lt;&gt; "" _</source>
 Сборка VB использует статическую линковку с libcurl, поэтому DLL ему не нужна (и мы её не собирали), но по какой-то необъяснимой причине конфигуратор требует её присутствия.
 </li>
 </ul>
+</li>
 <li>
 Теперь переходим к файлу <code>Makefile.kmk</code> и где-нибудь за пределами условных блоков добавляем следующий код (я добавил в строке 142, перед комментарием «Install our Qt DLLs…»):
 <source># OpenSSL DLLs
@@ -561,7 +558,7 @@ ifeq ($(KBUILD_TARGET),win)
  ifdef VBOX_WITH_32_ON_64_MAIN_API
   SDK_VBOX_OPENSSL-x86_DLLS ?= $(subst .lib,-1_1.dll,$(subst /lib/,/bin/,$(subst \,/,$(SDK_VBOX_OPENSSL-x86_LIBS))))
   InstallExternalLibs_SOURCES += \
- 	$(foreach sslmod,$(SDK_VBOX_OPENSSL-x86_DLLS),$(call VBOX_RE_SIGN_DLL_FN,InstallExternalLibs,$(sslmod),x86_)=>x86/$(substr $(sslmod),$(int-add $(lastpos /,$(sslmod)),1)))
+ 	$(foreach sslmod,$(SDK_VBOX_OPENSSL-x86_DLLS),$(call VBOX_RE_SIGN_DLL_FN,InstallExternalLibs,$(sslmod),x86_)=&gt;x86/$(substr $(sslmod),$(int-add $(lastpos /,$(sslmod)),1)))
  endif
 endif</source>
 При сборке VB производится копирование библиотек-зависимостей (таких как Qt, SDL) в целевой каталог. OpenSSL, видимо, в Oracle компилируется статически, а у нас он — динамический, поэтому здесь мы добавили копирование и подписывание соответствующих библиотек. (Я пробовал также собирать OpenSSL статически, но полезли конфликты на стадии линковки.)
@@ -610,7 +607,7 @@ VBoxRemPrimary_SOURCES.win.amd64 = $(VBoxREMImp_0_OUTDIR)/VBoxREMRes.o</source>
 Если VB собирается с подписыванием, то для большинства исполняемых файлов выставляется флаг принудительной проверки подписи (опция компоновщика <code>/IntegrityCheck</code>). Если у вас полноценный сертификат, это не проблема. Если нет — VB просто откажется запускаться после установки (даже в тестовом режиме). Я модифицировал файл <code>Config.kmk</code> таким образом, чтобы флаг добавлялся только при использовании полноценного сертификата (сертификат считается полноценным, если в файле <code>LocalConfig.kmk</code> задан кросс-сертификат; см. ниже). Набор исправлений заключается в следующем.
 <ul>
 <li>Вставить блок определения переменной <code>VBOX_INTEGRITY_CHECK</code>, которая будет использоваться вместо фиксированной опции. Я добавил этот блок кода перед строкой «<code>define VBOX_RE_SIGN_DLL_INTERNAL_FN</code>» (номер строки 3404):
-<source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE)
+<source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_CROSS_CERTIFICATE_FILE)
 	VBOX_INTEGRITY_CHECK := /IntegrityCheck
 else
 	VBOX_INTEGRITY_CHECK := /IntegrityCheck:NO
@@ -627,13 +624,13 @@ endif</source>
  TEMPLATE_XXXXXX_LDFLAGS          += -IntegrityCheck
 endif</source>
 или
-<source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_WITH_HARDENING)
+<source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_WITH_HARDENING)
  TEMPLATE_XXXXXX_LDFLAGS          += -IntegrityCheck
 endif</source>
 где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. В VB 5.1.10 таких вхождений — 6 штук, по три каждого вида (номера строк с учётом вышеприведённой вставки: 3833, 3972, 4090, 4511, 5322, 5874). Здесь нужно добавить условие, что переменная кросс-сертификата определена. В итоге первая строчка должна выглядеть, соответственно, как
-<source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE)</source>
+<source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_CROSS_CERTIFICATE_FILE)</source>
 или
-<source>if defined(VBOX_SIGNING_MODE) && defined(VBOX_CROSS_CERTIFICATE_FILE) && defined(VBOX_WITH_HARDENING)</source>
+<source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_CROSS_CERTIFICATE_FILE) &amp;&amp; defined(VBOX_WITH_HARDENING)</source>
 </li>
 </ul>
 </li>
@@ -750,47 +747,47 @@ set VBOX_VER_MN=
 set VBOX_VER_BLD=
 set VBOX_VER_PUB=
 
-del /q build-tmp.cmd 2>nul
+del /q build-tmp.cmd 2&gt;nul
 
-echo @echo off>> build-tmp.cmd
-echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7>> build-tmp.cmd
-echo color 07>> build-tmp.cmd
-echo echo.>> build-tmp.cmd
-echo echo ### %VERSION%: BUILDING x64 VERSION ###>> build-tmp.cmd
-echo echo.>> build-tmp.cmd
-echo set BUILD_TARGET_ARCH=amd64>> build-tmp.cmd
-echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-libcurl=C:\Programs\curl\x64 --with-Qt5=C:\Programs\Qt\5.6.2-x64 --with-python=C:\Programs\Python>> build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-echo call env.bat>> build-tmp.cmd
-echo kmk>> build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-%VERSION%-MultiArch_amd64.msi>> build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-
-cmd /c build-tmp.cmd
-if ERRORLEVEL 1 exit /b 1
-
-del /q build-tmp.cmd 2>nul
-
-echo @echo off>> build-tmp.cmd
-echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7>> build-tmp.cmd
-echo color 07>> build-tmp.cmd
-echo echo.>> build-tmp.cmd
-echo echo ### %VERSION%: BUILDING x32 VERSION ###>> build-tmp.cmd
-echo echo.>> build-tmp.cmd
-echo set BUILD_TARGET_ARCH=x86>> build-tmp.cmd
-echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.2-x32 --with-python=C:\Programs\Python>> build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-echo call env.bat>> build-tmp.cmd
-echo kmk>> build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-%VERSION%-MultiArch.exe>> build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+echo @echo off&gt;&gt; build-tmp.cmd
+echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7&gt;&gt; build-tmp.cmd
+echo color 07&gt;&gt; build-tmp.cmd
+echo echo.&gt;&gt; build-tmp.cmd
+echo echo ### %VERSION%: BUILDING x64 VERSION ###&gt;&gt; build-tmp.cmd
+echo echo.&gt;&gt; build-tmp.cmd
+echo set BUILD_TARGET_ARCH=amd64&gt;&gt; build-tmp.cmd
+echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-libcurl=C:\Programs\curl\x64 --with-Qt5=C:\Programs\Qt\5.6.2-x64 --with-python=C:\Programs\Python&gt;&gt; build-tmp.cmd
+echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
+echo call env.bat&gt;&gt; build-tmp.cmd
+echo kmk&gt;&gt; build-tmp.cmd
+echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
+echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-%VERSION%-MultiArch_amd64.msi&gt;&gt; build-tmp.cmd
+echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
 
 cmd /c build-tmp.cmd
 if ERRORLEVEL 1 exit /b 1
 
-del /q build-tmp.cmd AutoConfig.kmk configure.log env.bat 2>nul
+del /q build-tmp.cmd 2&gt;nul
+
+echo @echo off&gt;&gt; build-tmp.cmd
+echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7&gt;&gt; build-tmp.cmd
+echo color 07&gt;&gt; build-tmp.cmd
+echo echo.&gt;&gt; build-tmp.cmd
+echo echo ### %VERSION%: BUILDING x32 VERSION ###&gt;&gt; build-tmp.cmd
+echo echo.&gt;&gt; build-tmp.cmd
+echo set BUILD_TARGET_ARCH=x86&gt;&gt; build-tmp.cmd
+echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.2-x32 --with-python=C:\Programs\Python&gt;&gt; build-tmp.cmd
+echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
+echo call env.bat&gt;&gt; build-tmp.cmd
+echo kmk&gt;&gt; build-tmp.cmd
+echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
+echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-%VERSION%-MultiArch.exe&gt;&gt; build-tmp.cmd
+echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
+
+cmd /c build-tmp.cmd
+if ERRORLEVEL 1 exit /b 1
+
+del /q build-tmp.cmd AutoConfig.kmk configure.log env.bat 2&gt;nul
 
 echo.
 echo ### BUILD COMPLETE ###
