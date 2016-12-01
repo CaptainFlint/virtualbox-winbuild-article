@@ -47,7 +47,7 @@
 <li><b><a href="https://www.microsoft.com/en-us/download/details.aspx?id=4422">Visual C++ 2010 SP1 Compiler Update for SDK 7.1</a></b></li>
 <li><b><a href="http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=11800">Windows Driver Development Kit (WDK) v7.1</a></b></li>
 <li><b><a href="https://dev.windows.com/downloads/windows-8-1-sdk">Windows SDK v8.1</a></b></li>
-<li><b><a href="http://www.activestate.com/activeperl/downloads">ActivePerl</a></b></li>
+<li><b><a href="http://www.activestate.com/activeperl/downloads">ActivePerl</a></b> с дополнительным модулем <code>Text::Template</code></li>
 <li><b><a href="http://www.activestate.com/activepython/downloads">ActivePython 2.7</a></b></li>
 <li><b><a href="http://wixtoolset.org/">WiX</a></b></li>
 </ul>
@@ -144,6 +144,10 @@ wget или его альтернатива будет использовать�
 <br/>
 <h5>• WDK v7.1</h5>
 Достаточно установить только сборочные окружения (Build Environments).<br/>
+<br/>
+<h5>• Perl</h5>
+После установки необходимо доустановить модуль <code>Text::Template</code>, который нужен для сборки OpenSSL. Делается это командой:
+<source lang=".bat">ppm install Text::Template</source>
 <br/>
 <h5>• Qt 5.6.2</h5>
 Начиная с версии Qt 5.7.0 прекращена поддержка сборки в MSVC версий ниже 2012, поэтому используем 5.6.x.<br/>
