@@ -123,7 +123,7 @@ wget или его альтернатива будет использовать�
 <tr><td>MinGW Binutils</td><td>2.13.90-20021006-2</td><td><code>C:\Programs\mingw32\</code></td></tr>
 <tr><td>MinGW-w64</td><td>4.5.4</td><td><code>C:\Programs\mingw64\</code></td></tr>
 <tr><td>SDL</td><td>1.2.15</td><td><code>C:\Programs\SDL\{x32|x64}\</code></td></tr>
-<tr><td>cURL</td><td>7.51.0</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
+<tr><td>cURL</td><td>7.52.1</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
 <tr><td>OpenSSL</td><td>1.1.0c</td><td><code>C:\Programs\OpenSSL\{x32|x64}\</code></td></tr>
 <tr><td>gSOAP</td><td>2.8.39</td><td><code>C:\Programs\gSOAP\</code></td></tr>
 <tr><td>MiKTeX Portable</td><td>2.9.5719</td><td><code>C:\Programs\MiKTeX\</code></td></tr>
@@ -249,9 +249,9 @@ nmake install</source>
 <br/>
 <h5>• cURL</h5>
 <ol>
-<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.51.0</code> в <code>curl-7.51.0-x32</code>.</li>
+<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.52.1</code> в <code>curl-7.52.1-x32</code>.</li>
 <li>
-Открываем в редакторе файл <code>C:\Programs\curl\curl-7.51.0-x32\lib\Makefile.vc10</code>, находим там в районе строки 122 следующий код:
+Открываем в редакторе файл <code>C:\Programs\curl\curl-7.52.1-x32\lib\Makefile.vc10</code>, находим там в районе строки 122 следующий код:
 <source>CFLAGS       = $(CFLAGS)</source>
 и заменяем на:
 <source>CFLAGS       = $(CFLAGS) /DCURL_DISABLE_LDAP</source>
@@ -260,11 +260,11 @@ nmake install</source>
 <source>	$(DIROBJ)\strequal.obj \</source>
 и удаляем её. Это ошибка в новом релизе cURL: файлы поменяли, а список забыли поправить, так что линковщик не находит файл и ему становится грустно.
 </li>
-<li>Делаем копию каталога <code>curl-7.51.0-x32</code> под именем <code>curl-7.51.0-x64</code>.</li>
+<li>Делаем копию каталога <code>curl-7.52.1-x32</code> под именем <code>curl-7.52.1-x64</code>.</li>
 <li>Открываем консоль, собираем 32-битную версию библиотеки (сам curl не потребуется) и копируем необходимые файлы в целевой каталог:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
 COLOR 07
-cd /d C:\Programs\curl\curl-7.51.0-x32\lib
+cd /d C:\Programs\curl\curl-7.52.1-x32\lib
 md C:\Programs\curl\x32
 set INCLUDE=c:\Programs\OpenSSL\x32\include;%INCLUDE%
 nmake /f Makefile.vc10 cfg=release-ssl
@@ -275,14 +275,14 @@ xcopy /E ..\include\curl ..\..\x32\include\curl\</source>
 Собираем 64-битную версию, открыв новую консоль и выполнив команды:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
-cd /d C:\Programs\curl\curl-7.51.0-x64\lib
+cd /d C:\Programs\curl\curl-7.52.1-x64\lib
 md C:\Programs\curl\x64
 set INCLUDE=c:\Programs\OpenSSL\x64\include;%INCLUDE%
 nmake /f Makefile.vc10 MACHINE=x64 cfg=release-ssl
 copy *.lib ..\..\x64
 xcopy /E ..\include\curl ..\..\x64\include\curl\</source>
 </li>
-<li>Каталоги <code>C:\Programs\curl\curl-7.51.0-x32</code> и <code>curl-7.51.0-x64</code> можно удалять.</li>
+<li>Каталоги <code>C:\Programs\curl\curl-7.52.1-x32</code> и <code>curl-7.52.1-x64</code> можно удалять.</li>
 </ol>
 <br/>
 <h5>• gSOAP</h5>
