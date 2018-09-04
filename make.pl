@@ -22,7 +22,7 @@ sub makeGT() {
 	close($f);
 	$data =~ s!<%bullet%>!https://habrastorage.org/getpro/geektimes/post_images/9f8/505/49b/9f850549b13e79dc47d23f5f9e994379.png!gs;
 	$data =~ s!<%logo%>!https://habrastorage.org/getpro/geektimes/post_images/122/274/f2b/122274f2b4098fd3b2d5eb703ce60fd3.png!gs;
-	$data =~ s!<%selfref%>!//geektimes.ru/post/269524/!gs;
+	$data =~ s!<%selfref%>!//habr.com/post/357526/!gs;
 	open($f, '>', $dst) or die "Failed to open target file '$dst': $!";
 	binmode($f);
 	print $f $data;
