@@ -107,18 +107,18 @@
 <tr><td>SDK</td><td>7.1</td><td><code>C:\Program Files\Microsoft SDKs\Windows\v7.1\</code></td></tr>
 <tr><td>SDK</td><td>8.1</td><td><code>C:\Programs\DevKits\8.1\</code></td></tr>
 <tr><td>WDK</td><td>7.1.0</td><td><code>C:\WinDDK\7600.16385.1\</code></td></tr>
-<tr><td>ActivePerl</td><td>5.24.1 Build 2402 x64</td><td><code>C:\Programs\Perl\</code></td></tr>
-<tr><td>ActivePython</td><td>2.7.13.2715 x64</td><td><code>C:\Programs\Python\</code></td></tr>
-<tr><td>WiX</td><td>3.11.0.1701</td><td><code>C:\Programs\WiX\</code></td></tr>
+<tr><td>ActivePerl</td><td>5.26.1 Build 2601 x64</td><td><code>C:\Programs\Perl\</code></td></tr>
+<tr><td>ActivePython</td><td>2.7.14.2717 x64</td><td><code>C:\Programs\Python\</code></td></tr>
+<tr><td>WiX</td><td>3.11.1.2318</td><td><code>C:\Programs\WiX\</code></td></tr>
 <tr><td>Qt</td><td>5.6.3</td><td><code>C:\Programs\Qt\5.6.3-{x32|x64}\</code></td></tr>
 <tr><td>MinGW-32</td><td>4.5.4</td><td><code>C:\Programs\mingw32\</code></td></tr>
 <tr><td>MinGW-64</td><td>4.5.4</td><td><code>C:\Programs\mingw64\</code></td></tr>
 <tr><td>SDL</td><td>1.2.15</td><td><code>C:\Programs\SDL\{x32|x64}\</code></td></tr>
-<tr><td>cURL</td><td>7.57.0</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
-<tr><td>OpenSSL</td><td>1.1.0g</td><td><code>C:\Programs\OpenSSL\{x32|x64}\</code></td></tr>
-<tr><td>gSOAP</td><td>2.8.55</td><td><code>C:\Programs\gSOAP\</code></td></tr>
+<tr><td>cURL</td><td>7.61.0</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
+<tr><td>OpenSSL</td><td>1.1.0i</td><td><code>C:\Programs\OpenSSL\{x32|x64}\</code></td></tr>
+<tr><td>gSOAP</td><td>2.8.70</td><td><code>C:\Programs\gSOAP\</code></td></tr>
 <tr><td>MiKTeX Portable</td><td>2.9.5719</td><td><code>C:\Programs\MiKTeX\</code></td></tr>
-<tr><td>NASM</td><td>2.13.01 x64</td><td><code>C:\Programs\nasm\</code></td></tr>
+<tr><td>NASM</td><td>2.13.03 x64</td><td><code>C:\Programs\nasm\</code></td></tr>
 <tr><td>DocBook XML DTD</td><td>4.5</td><td><code>C:\Programs\DocBook\xml\</code></td></tr>
 <tr><td>DocBook XSL Stylesheets</td><td>1.79.1</td><td><code>C:\Programs\DocBook\xsl\</code></td></tr>
 </table>
@@ -205,16 +205,16 @@ SET QMAKESPEC=win32-msvc2010</source>
 </ol>
 <br/>
 <h5>• NASM</h5>
-Распаковываем архив <code>nasm-2.13.01-win64.zip</code> в <code>C:\Programs\</code>, переименовываем полученный каталог <code>nasm-2.13.01</code> в <code>nasm</code>.<br/>
+Распаковываем архив <code>nasm-2.13.03-win64.zip</code> в <code>C:\Programs\</code>, переименовываем полученный каталог <code>nasm-2.13.03</code> в <code>nasm</code>.<br/>
 <br/>
 <h5>• OpenSSL</h5>
 <ol>
-<li>Распаковываем архив OpenSSL два раза в каталог <code>C:\Programs\OpenSSL\</code>, переименовывая полученный подкаталог из <code>openssl-1.1.0g</code>, соответственно, в <code>openssl-1.1.0g-x32</code> и <code>openssl-1.1.0g-x64</code>.</li>
+<li>Распаковываем архив OpenSSL два раза в каталог <code>C:\Programs\OpenSSL\</code>, переименовывая полученный подкаталог из <code>openssl-1.1.0i</code>, соответственно, в <code>openssl-1.1.0i-x32</code> и <code>openssl-1.1.0i-x64</code>.</li>
 <li>Открываем консоль, собираем и устанавливаем 32-битную версию:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
 COLOR 07
 set PATH=%PATH%;C:\Programs\nasm
-cd /d C:\Programs\OpenSSL\openssl-1.1.0g-x32\
+cd /d C:\Programs\OpenSSL\openssl-1.1.0i-x32\
 perl Configure VC-WIN32 no-shared --prefix=C:\Programs\OpenSSL\x32 --openssldir=C:\Programs\OpenSSL\x32\ssl
 nmake
 nmake test
@@ -227,41 +227,46 @@ nmake install</source>
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
 set PATH=%PATH%;C:\Programs\nasm
-cd /d C:\Programs\OpenSSL\openssl-1.1.0g-x64\
+cd /d C:\Programs\OpenSSL\openssl-1.1.0i-x64\
 perl Configure VC-WIN64A no-shared --prefix=C:\Programs\OpenSSL\x64 --openssldir=C:\Programs\OpenSSL\x64\ssl
 nmake
 nmake test
 nmake install</source>
 Отказ от NASM делается аналогично 32-битной версии.
 </li>
-<li>Каталоги <code>C:\Programs\OpenSSL\openssl-1.1.0g-x32</code> и <code>openssl-1.1.0g-x64</code> можно удалять.</li>
+<li>Каталоги <code>C:\Programs\OpenSSL\openssl-1.1.0i-x32</code> и <code>openssl-1.1.0i-x64</code> можно удалять.</li>
 </ol>
 <br/>
 <h5>• cURL</h5>
 <ol>
-<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.57.0</code> в <code>curl-7.57.0-x32</code>.</li>
+<li>Распаковываем архив cURL в каталог: <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.61.0</code> в <code>curl-7.61.0-x32</code>.</li>
 <li>
-Открываем в редакторе файл <code>C:\Programs\curl\curl-7.57.0-x32\winbuild\MakefileBuild.vc</code>, находим там в районе строк 56–64 условный блок вида:
+Открываем в редакторе файл <code>C:\Programs\curl\curl-7.61.0-x32\winbuild\MakefileBuild.vc</code>, находим там в районе строк 61–69 условный блок вида:
 <source>!IF "$(VC)"=="6"
 CC_NODEBUG  = $(CC) /O2 /DNDEBUG
 CC_DEBUG    = $(CC) /Od /Gm /Zi /D_DEBUG /GZ
-CFLAGS     = /I. /I../lib /I../include /nologo /W3 /GX /DWIN32 /YX /FD /c /DBUILDING_LIBCURL
+CFLAGS      = /I. /I../lib /I../include /nologo /W4 /wd4127 /GX /DWIN32 /YX /FD /c /DBUILDING_LIBCURL
 !ELSE
 CC_NODEBUG  = $(CC) /O2 /DNDEBUG
-CC_DEBUG    = $(CC) /Od /D_DEBUG /RTC1 /Z7 /LDd /W3
-CFLAGS      = /I. /I ../lib /I../include /nologo /W3 /EHsc /DWIN32 /FD /c /DBUILDING_LIBCURL
+CC_DEBUG    = $(CC) /Od /D_DEBUG /RTC1 /Z7 /LDd
+CFLAGS      = /I. /I ../lib /I../include /nologo /W4 /wd4127 /EHsc /DWIN32 /FD /c /DBUILDING_LIBCURL
 !ENDIF</source>
 и добавляем после него строчку:
 <source>CFLAGS      = $(CFLAGS) /DCURL_DISABLE_LDAP</source>
 Если этого не сделать, то при сборке VB полезут ошибки линковки.
 </li>
-<li>Делаем копию каталога <code>curl-7.57.0-x32</code> под именем <code>curl-7.57.0-x64</code>.</li>
+<li>
+Открываем файл <code>C:\Programs\curl\curl-7.61.0-x32\winbuild\gen_resp_file.bat</code>, после первой строчки в нём (<code>@echo OFF</code>) вставляем команду:
+<source>cd .</source>
+Это фиктивная команда, которая ничего не делает, и задача её лишь в том, чтобы сбросить код ERRORLEVEL. В противном случае может возникнуть ситуация, когда этот код оказывается ненулевым ещё до запуска батника, а сам батник не выполняет ни одной команды, меняющей код возврата. В результате <code>nmake</code> считает, что батник вернул ошибку, и прерывает сборку.
+</li>
+<li>Делаем копию каталога <code>curl-7.61.0-x32</code> под именем <code>curl-7.61.0-x64</code>.</li>
 <li>Открываем консоль, собираем 32-битную версию и копируем необходимые файлы в целевой каталог:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
 COLOR 07
-cd /d C:\Programs\curl\curl-7.57.0-x32\winbuild
+cd /d C:\Programs\curl\curl-7.61.0-x32\winbuild
 md C:\Programs\curl\x32
-nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x86 WITH_DEVEL=C:\Programs\OpenSSL\x32 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
+nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x86 SSL_PATH=C:\Programs\OpenSSL\x32 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
 copy ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\lib\libcurl_a.lib ..\..\x32\libcurl.lib
 xcopy /E ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\include\curl ..\..\x32\include\curl\</source>
 </li>
@@ -269,15 +274,15 @@ xcopy /E ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\include\curl ..
 Собираем 64-битную версию, открыв новую консоль и выполнив команды:
 <source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
-cd /d C:\Programs\curl\curl-7.57.0-x64\winbuild
+cd /d C:\Programs\curl\curl-7.61.0-x64\winbuild
 md C:\Programs\curl\x64
-nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x64 WITH_DEVEL=C:\Programs\OpenSSL\x64 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
+nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x64 SSL_PATH=C:\Programs\OpenSSL\x64 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
 copy ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\lib\libcurl_a.lib ..\..\x64\libcurl.lib
 xcopy /E ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\include\curl ..\..\x64\include\curl\
 copy ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\bin\curl.exe ..\..\x64\curl.exe</source>
 Обратите внимание, что, в отличие от 32-битной версии, здесь мы копируем ещё и <code>curl.exe</code>, он нам потом понадобится для скачивания образа гостевых дополнений.
 </li>
-<li>Каталоги <code>C:\Programs\curl\curl-7.57.0-x32</code> и <code>curl-7.57.0-x64</code> можно удалять.</li>
+<li>Каталоги <code>C:\Programs\curl\curl-7.61.0-x32</code> и <code>curl-7.61.0-x64</code> можно удалять.</li>
 </ol>
 <br/>
 <h5>• gSOAP</h5>
@@ -313,16 +318,16 @@ certmgr.exe -add C:\Devel\testcert_256.cer -s -r localMachine root</source>
 <h5>• Сборка xmllint</h5>
 На одном из этапов потребуется также программа xmllint. Я не указывал её в списке требований, потому что необходимые исходники уже присутствуют в архиве VB. Сборочные правила не рассчитаны на автоматическую сборку этой утилиты, поэтому её придётся собрать отдельно. В качестве целевого каталога я выбрал <code>C:\Programs\xmllint</code>.
 <ol>
-<li>Копируем содержимое каталога <code>C:\Devel\VirtualBox-src\src\libs\libxml2-2.9.2</code> в <code>C:\Programs\libxml2-2.9.2\</code> (это необходимо, чтобы промежуточные объектные файлы не мешали сборке самого VB).</li>
+<li>Копируем содержимое каталога <code>C:\Devel\VirtualBox-src\src\libs\libxml2-2.9.4</code> в <code>C:\Programs\libxml2-2.9.4\</code> (это необходимо, чтобы промежуточные объектные файлы не мешали сборке самого VB).</li>
 <li>Открываем консоль и выполняем команды:
-<source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+<source lang=".bat">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
-cd /d C:\Programs\libxml2-2.9.2\win32
+cd /d C:\Programs\libxml2-2.9.4\win32
 cscript.exe configure.js cruntime=/MT prefix=C:\Programs\xmllint iconv=no
 nmake /f Makefile.msvc
 nmake /f Makefile.msvc install</source>
 </li>
-<li>Удаляем каталог <code>C:\Programs\libxml2-2.9.2</code>.</li>
+<li>Удаляем каталог <code>C:\Programs\libxml2-2.9.4</code>.</li>
 </ol>
 <br/>
 <h5>• Различные правки VB</h5>
@@ -735,4 +740,15 @@ echo.</source>
 <li>Использование локальных архивов DocBook XML/XSL вместо онлайн-версий.</li>
 <li>Переход с wget на curl для скачивания образа гостевых дополнений.</li>
 <li>Различные мелкие правки.</li>
+</ol>
+<br/>
+<h5>• Обновление статьи от 4.12.2017</h5>
+<ol>
+<li>Исправлена версия libxml в инструкциях.</li>
+</ol>
+<br/>
+<h5>• Обновление статьи от 4.09.2018</h5>
+<ol>
+<li>Внесены уточнения с учётом изменений в VB 5.2.18.</li>
+<li>Актуализированы версии cURL, OpenSSL, gSOAP и некоторых сборочных инструментов; поправлены инструкции для cURL.</li>
 </ol>
