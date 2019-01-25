@@ -4,7 +4,7 @@
 <br/>
 Как известно большинству пользователей Windows-версии VirtualBox (далее — <em>VB</em>, не путать с Visual Basic), в релизе 4.3.14 разработчики этой программы добавили дополнительный механизм защиты, называемый «hardening» (что можно перевести как «упрочнение»), который привёл к многочисленным проблемам совместимости VB с антивирусами, драйверами крипто-модулей и даже отдельными обновлениями самой Windows, в результате чего виртуальные машины попросту отказываются запускаться. В лучшем случае пользователю приходится ждать около месяца, пока проблемная программа, о которой он сообщит разработчикам, окажется учтена в следующем релизе VB. В худшем случае придётся либо удалять конфликтующую программу (или системное обновление), либо откатывать VB до версии 4.3.12 — последней, в которой не было этой защиты. Многочисленные предложения к разработчикам о добавлении пользовательского списка исключений или опции, отключающей защиту целиком, остаются без внимания. Единственный внятный ответ с их стороны звучит так: «не хотите защиту — компилируйте из исходников сами». Что ж, придётся этим заняться.<br/>
 <br/>
-Несмотря на то, что процедура сборки <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">описана</a> на официальной вики, она неполна и кое в чём устарела, а сама сборка так и норовит выдать странные ошибки. Поэтому когда я всё-таки пробился до конца сей процедуры, я решил, что её описание заслуживает отдельной статьи. Инструкция адаптирована для VB версии 5.2.22, но если кого-то заинтересует сборка более ранних версий VB или библиотек, информацию можно выцарапать из <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/">истории правок</a>.<br/>
+Несмотря на то, что процедура сборки <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">описана</a> на официальной вики, она неполна и кое в чём устарела, а сама сборка так и норовит выдать странные ошибки. Поэтому когда я всё-таки пробился до конца сей процедуры, я решил, что её описание заслуживает отдельной статьи. Инструкция время от времени обновляется и на текущий момент адаптирована для VB версии 6.0.2, но если кого-то заинтересует сборка более ранних версий VB или библиотек, информацию можно выцарапать из <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/">истории правок</a>.<br/>
 <br/>
 <cut text="Я заинтересован" />
 <h4><img src="<%bullet%>"/> Содержание</h4>
@@ -30,9 +30,9 @@
 Про hardening известно, что добавили его не просто так, а для закрытия некой уязвимости VB. Внятно рассказать о сути уязвимости Oracle категорически отказывается, несмотря на то, что с момента фикса прошло больше двух лет. Ограничиваются лишь намёками на «очень уязвимую архитектуру Windows, разрешающую загрузку сторонних модулей в чужие процессы». Вопрос о том, как же без подобных ухищрений умудряются работать другие системы виртуализации (да и вообще все программы), также остаётся без ответа. Из отдельных скупых фраз на официальном форуме удалось выудить информацию, что проблема связана с повышением привилегий на хостовой машине, и что для этой уязвимости VB есть реально использующиеся эксплойты. Если это вас не пугает, можете продолжать чтение, но я вас предупредил.<br/>
 <br/>
 <h5>• Подписывание драйверов</h5><br/>
-Как известно, 64-битная Windows в обычном режиме запрещает загрузку драйверов, не подписанных сертификатом с цепочкой доверия, ведущей до корневого сертификата Microsoft (а в Windows 10 предпринимаются шаги к запрету вообще всех драйверов, подписанных не в Microsoft). Поэтому прежде чем компилировать VB даже для личного использования, необходимо продумать решение этой проблемы: либо купить сертификат, либо попробовать воспользоваться сервисами подписывания драйверов для разработчиков Open Source (если они, конечно, согласятся подписать заведомо уязвимый драйвер), либо перевести свою Windows в тестовый режим и использовать самоподписанный тестовый сертификат.<br/>
+Как известно, 64-битная Windows в обычном режиме запрещает загрузку драйверов, не подписанных сертификатом с цепочкой доверия, ведущей до корневого сертификата Microsoft (а в Windows 10 драйверы и вовсе должны быть подписаны непосредственно самой Microsoft). Поэтому прежде чем компилировать VB даже для личного использования, необходимо продумать решение этой проблемы: либо купить сертификат, либо попробовать воспользоваться сервисами подписывания драйверов для разработчиков Open Source (если они, конечно, согласятся подписать заведомо уязвимый драйвер), либо перевести свою Windows в тестовый режим и использовать самоподписанный тестовый сертификат.<br/>
 <br/>
-Далее я буду ориентироваться на этот последний вариант, но в нужных местах укажу, как поменяется процедура при наличии полноценного сертификата.<br/>
+Далее я буду ориентироваться на этот последний вариант, но в нужных местах укажу, как поменяется процедура при наличии полноценного сертификата (хотя я пока не смог разобраться, как предполагается выполнять сборку с подписыванием для Windows 10).<br/>
 <br/>
 <anchor>environment</anchor><h4><img src="<%bullet%>"/> Готовим окружение</h4><br/>
 Официально в качестве сборочной системы рекомендуется Windows версии от XP SP3 до 7. Всю работу я проводил в Windows 7 SP1 x64, но, думаю, что с более современными версиями проблем возникнуть не должно. Если вы выделяете для сборки отдельную машину (реальную или виртуальную), имейте в виду, что ей необходим доступ в Интернет.<br/>
@@ -74,8 +74,8 @@
 <br/>
 Также потребуются два архива:<br/>
 <ul>
-<li><b><a href="http://www.oasis-open.org/docbook/xml/4.5/docbook-xml-4.5.zip">DocBook XML DTD</a></b></li>
-<li><b><a href="https://sourceforge.net/projects/docbook/files/docbook-xsl/1.79.1/docbook-xsl-1.79.1.zip/download">DocBook XSL Stylesheets</a></b></li>
+<li><b><a href="http://www.oasis-open.org/docbook/xml/4.5/docbook-xml-4.5.zip">DocBook XML DTD 4.5</a></b></li>
+<li><b><a href="https://sourceforge.net/projects/docbook/files/OldFiles/docbook-xsl-1.69.1.zip/download">DocBook XSL Stylesheets 1.69.1</a></b></li>
 </ul>
 <br/>
 <spoiler title="Зачем оно всё?">
@@ -124,15 +124,15 @@
 <tr><td>MinGW-64</td><td>4.5.4</td><td><code>C:\Programs\mingw64\</code></td></tr>
 <tr><td>Cygwin</td><td>-</td><td><code>C:\Programs\cygwin64\</code></td></tr>
 <tr><td>SDL</td><td>1.2.15</td><td><code>C:\Programs\SDL\{x32|x64}\</code></td></tr>
-<tr><td>cURL</td><td>7.62.0</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
+<tr><td>cURL</td><td>7.63.0</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
 <tr><td>OpenSSL</td><td>1.1.1a</td><td><code>C:\Programs\OpenSSL\{x32|x64}\</code></td></tr>
-<tr><td>gSOAP</td><td>2.8.73</td><td><code>C:\Programs\gSOAP\</code></td></tr>
+<tr><td>gSOAP</td><td>2.8.77</td><td><code>C:\Programs\gSOAP\</code></td></tr>
 <tr><td>libvpx</td><td>1.7.0</td><td><code>C:\Programs\libvpx\</code></td></tr>
 <tr><td>libopus</td><td>1.3</td><td><code>C:\Programs\libopus\</code></td></tr>
 <tr><td>MiKTeX Portable</td><td>2.9.5719</td><td><code>C:\Programs\MiKTeX\</code></td></tr>
 <tr><td>NASM</td><td>2.13.03 x64</td><td><code>C:\Programs\nasm\</code></td></tr>
 <tr><td>DocBook XML DTD</td><td>4.5</td><td><code>C:\Programs\DocBook\xml\</code></td></tr>
-<tr><td>DocBook XSL Stylesheets</td><td>1.79.1</td><td><code>C:\Programs\DocBook\xsl\</code></td></tr>
+<tr><td>DocBook XSL Stylesheets</td><td>1.69.1</td><td><code>C:\Programs\DocBook\xsl\</code></td></tr>
 </table>
 
 <anchor>environment-inst</anchor><h4><img src="<%bullet%>"/> Особенности установки программ</h4><br/>
@@ -254,9 +254,9 @@ nmake install</source>
 <br/>
 <h5>• cURL</h5>
 <ol>
-<li>Распаковываем архив cURL в каталог <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.62.0</code> в <code>curl-7.62.0-x32</code>.</li>
+<li>Распаковываем архив cURL в каталог <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.63.0</code> в <code>curl-7.63.0-x32</code>.</li>
 <li>
-Открываем в редакторе файл <code>C:\Programs\curl\curl-7.62.0-x32\winbuild\MakefileBuild.vc</code>, находим там в районе строк 61–69 условный блок вида:
+Открываем в редакторе файл <code>C:\Programs\curl\curl-7.63.0-x32\winbuild\MakefileBuild.vc</code>, находим там в районе строк 61–69 условный блок вида:
 <source>!IF "$(VC)"=="6"
 CC_NODEBUG  = $(CC) /O2 /DNDEBUG
 CC_DEBUG    = $(CC) /Od /Gm /Zi /D_DEBUG /GZ
@@ -271,15 +271,15 @@ CFLAGS      = /I. /I ../lib /I../include /nologo /W4 /wd4127 /EHsc /DWIN32 /FD /
 Если этого не сделать, то при сборке VB полезут ошибки линковки.
 </li>
 <li>
-Открываем файл <code>C:\Programs\curl\curl-7.62.0-x32\winbuild\gen_resp_file.bat</code>, после первой строчки в нём (<code>@echo OFF</code>) вставляем команду:
+Открываем файл <code>C:\Programs\curl\curl-7.63.0-x32\winbuild\gen_resp_file.bat</code>, после первой строчки в нём (<code>@echo OFF</code>) вставляем команду:
 <source>cd .</source>
 Это фиктивная команда, которая ничего не делает, и задача её лишь в том, чтобы сбросить код ERRORLEVEL. В противном случае может возникнуть ситуация, когда этот код оказывается ненулевым ещё до запуска батника, а сам батник не выполняет ни одной команды, меняющей код возврата. В результате <code>nmake</code> считает, что батник вернул ошибку, и прерывает сборку.
 </li>
-<li>Делаем копию каталога <code>curl-7.62.0-x32</code> под именем <code>curl-7.62.0-x64</code>.</li>
+<li>Делаем копию каталога <code>curl-7.63.0-x32</code> под именем <code>curl-7.63.0-x64</code>.</li>
 <li>Открываем консоль, собираем 32-битную версию и копируем необходимые файлы в целевой каталог:
 <source lang="dos">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
 COLOR 07
-cd /d C:\Programs\curl\curl-7.62.0-x32\winbuild
+cd /d C:\Programs\curl\curl-7.63.0-x32\winbuild
 md C:\Programs\curl\x32
 nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x86 SSL_PATH=C:\Programs\OpenSSL\x32 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
 copy ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\lib\libcurl_a.lib ..\..\x32\libcurl.lib
@@ -289,7 +289,7 @@ xcopy /E ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\include\curl ..
 Собираем 64-битную версию, открыв новую консоль и выполнив команды:
 <source lang="dos">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
-cd /d C:\Programs\curl\curl-7.62.0-x64\winbuild
+cd /d C:\Programs\curl\curl-7.63.0-x64\winbuild
 md C:\Programs\curl\x64
 nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x64 SSL_PATH=C:\Programs\OpenSSL\x64 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
 copy ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\lib\libcurl_a.lib ..\..\x64\libcurl.lib
@@ -297,7 +297,7 @@ xcopy /E ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\include\curl ..
 copy ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\bin\curl.exe ..\..\x64\curl.exe</source>
 Обратите внимание, что, в отличие от 32-битной версии, здесь мы копируем ещё и <code>curl.exe</code>, он нам потом понадобится для скачивания образа гостевых дополнений.
 </li>
-<li>Каталоги <code>C:\Programs\curl\curl-7.62.0-x32</code> и <code>curl-7.62.0-x64</code> можно удалять.</li>
+<li>Каталоги <code>C:\Programs\curl\curl-7.63.0-x32</code> и <code>curl-7.63.0-x64</code> можно удалять.</li>
 </ol>
 <br/>
 
@@ -620,30 +620,75 @@ end sub
 (я добавляю после строки <code>X509_VERIFY_PARAM_set_flags</code>). Этот список определяет набор функций, экспортируемых библиотекой <code>VBoxRT.dll</code>. В gSOAP 2.8.45 добавили вызов функции <code>X509_STORE_set_flags()</code>, линковщик не может найти её в <code>VBoxRT</code>, подключает OpenSSL и тут же начинает материться из-за того, что эта внешняя OpenSSL начинает драться со своей копией, внедрённой внутрь <code>VBoxRT</code>. Добавление экспорта устраняет эту проблему.
 </li>
 <li>
-Открываем файл <code>src\VBox\Additions\Makefile.kmk</code>, находим там блок кода вида:
-<source>if defined(VBOX_WITH_ADDITIONS_ISO.win.amd64) || defined(VBOX_WITH_ADDITIONS_ISO.win.x86)
-	&lt;…&gt;
-endif</source>
-и удаляем его целиком. Здесь происходит какая-то хитрая машинерия, связанная с сертификатами для гостевых дополнений. Мы их не собираем, поэтому этот код будет только мешать.<br/>
-Ниже в этом же файле видим правило для сборки ISO-образа гостевых дополнений, начинающееся с объявления:
-<source>$(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso: \</source>
-Удаляем этот блок и вставляем вместо него единственную команду для загрузки официального образа:
-<source>$(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso:
-	$(VBOX_RETRY) $(TOOL_CURL_FETCH) http://download.virtualbox.org/virtualbox/$(VBOX_VERSION_STRING_RAW)/VBoxGuestAdditions_$(VBOX_VERSION_STRING_RAW).iso -o $@</source>
+Как я упомянул в начале статьи, сборку гостевых дополнений я пропускаю, но их ISO-образ в составе дистрибутива должен присутствовать. Сборочные файлы VB на такую конструкцию в целом рассчитаны, но они ожидают, что сам ISO-файл магическим образом появится в нужном месте в нужное время. Чтобы обеспечить эту магию, открываем файл <code>src\VBox\Makefile.kmk</code>, находим там блок кода вида:
+<source>  ifdef VBOX_WITH_ADDITIONS
+   include $(PATH_SUB_CURRENT)/Additions/Makefile.kmk
+  endif</source>
+и после него добавляем определение сборочного правила для загрузки образа:
+<source> ifndef VBOX_WITHOUT_ADDITIONS_ISO
+  $(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso:
+	$(QUIET)$(MKDIR) -p $(@D)
+	$(VBOX_RETRY) $(TOOL_CURL_FETCH) http://download.virtualbox.org/virtualbox/$(VBOX_VERSION_STRING_RAW)/VBoxGuestAdditions_$(VBOX_VERSION_STRING_RAW).iso -o $@
+ endif</source>
+Если вы правите файлы самостоятельно, а не готовым патчем, учтите, что строки-команды должны начинаться с символа табуляции.
 </li>
 <li>
-Открываем файл <code>src\VBox\Additions\WINNT\tools\Makefile.kmk</code>, находим там ещё один кусок кода, отвечающий за сертификаты в гостевых дополнениях:
-<source>#
-# Install all the certificates we use here.
-#
-INSTALLS += AdditionsInstCertFiles
-AdditionsInstCertFiles_TEMPLATE = VBoxGuestR3Exe
-AdditionsInstCertFiles_SOURCES  =
-AdditionsInstCertFiles_CLEAN    =
-ifdef VBOX_SIGNING_MODE
-	&lt;…&gt;
-endif</source>
-и удаляем его тоже.
+Сборка документации была существенно переделана в версии 6.0, и если раньше всё собиралось без каких-либо доработок, то теперь приходится лезть и в эту подсистему. Я не знаю, в каких условиях документация собирается в Oracle, но у меня различные компоненты то и дело теряли слэши в путях или, наоборот, получали лишние, и в итоге не могли найти нужные файлы из-за сбившихся соответствий в файлах каталогов. Методом научного тыка мне удалось в итоге подобрать комбинацию, с которой документация собралась без ошибок. Сначала нужно в файле <code>doc\manual\Makefile.kmk</code> найти код:
+<source>define def_vbox_refentry_to_user_sect1
+$$(VBOX_PATH_MANUAL_OUTBASE)/$(1)/user_$(2): $(3) \
+		$$(VBOX_PATH_MANUAL_SRC)/docbook-refentry-to-manual-sect1.xsl \
+		$$(VBOX_XML_CATALOG) $$(VBOX_XML_CATALOG_DOCBOOK) $$(VBOX_XML_CATALOG_MANUAL) \
+		$$(VBOX_VERSION_STAMP) | $$(dir $$@)
+	$$(call MSG_TOOL,xsltproc $$(notdir $$(filter %.xsl,$$^)),,$$(filter %.xml,$$^),$$@)
+	$$(QUIET)$$(RM) -f "$$@"
+	$$(QUIET)$$(call VBOX_XSLTPROC_WITH_CAT) --output $$@ $$(VBOX_PATH_MANUAL_SRC)/docbook-refentry-to-manual-sect1.xsl $$&lt;
+endef</source>
+и после строчки с <code>$$(RM)</code> добавить команду создания целевого каталога:
+<source>	$$(QUIET)$$(MKDIR) -p "$$(@D)"</source>
+(не забудьте, что тут табуляция!) Если этого не сделать, часть генерируемых файлов не может быть создана из-за отсутствия целевого пути.<br/><br/>
+После этого открываем файл <code>doc\manual\Config.kmk</code>, находим следующую строчку:
+<source>  VBOX_FILE_URL_MAYBE_SLASH = $(if $(eq $(KBUILD_HOST),win),/,)</source>
+и после неё добавляем две новых переменных, которые дублируют существующие переменные, но превращают одиночный слэш после имени диска в тройной:
+<source> VBOX_PATH_MANUAL_SRC_SLASHED = $(subst :/,:///,$(VBOX_PATH_MANUAL_SRC))
+ VBOX_PATH_MANUAL_OUTBASE_SLASHED = $(subst :/,:///,$(VBOX_PATH_MANUAL_OUTBASE))</source>
+Чуть ниже находим правило для создания файла каталога:
+<source> $(VBOX_XML_CATALOG): $(MAKEFILE_CURRENT) | $$(dir $$@)
+	$(call MSG_L1,Creating catalog $@)
+	$(QUIET)$(APPEND) -tn "$@" \
+		'&lt;?xml version="1.0"?&gt;' \
+		'&lt;!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd"&gt;' \
+		'&lt;catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog"&gt;' \
+		'  &lt;delegatePublic publicIdStartString="-//OASIS/ENTITIES DocBook XML"      catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/&gt;' \
+		'  &lt;delegatePublic publicIdStartString="-//OASIS/DTD DocBook XML"           catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/&gt;' \
+		'  &lt;delegateSystem systemIdStartString="http://www.oasis-open.org/docbook/" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/&gt;' \
+		'  &lt;delegateURI uriStartString="http://www.oasis-open.org/docbook/"         catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/&gt;' \
+		'  &lt;delegateSystem systemIdStartString="$(VBOX_PATH_MANUAL_SRC)"            catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_SRC)"                    catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'  &lt;delegateURI uriStartString="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE)"                catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'&lt;/catalog&gt;'</source>
+Здесь нужно все строки, которые используют переменные <code>VBOX_PATH_MANUAL_SRC</code> и <code>VBOX_PATH_MANUAL_OUTBASE</code>, продублировать с заменой этих переменных на определённые выше (ту, что имеет префикс <code>file://</code>, можно пропустить). В итоге должно получиться:
+<source> $(VBOX_XML_CATALOG): $(MAKEFILE_CURRENT) | $$(dir $$@)
+	$(call MSG_L1,Creating catalog $@)
+	$(QUIET)$(APPEND) -tn "$@" \
+		'&lt;?xml version="1.0"?&gt;' \
+		'&lt;!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd"&gt;' \
+		'&lt;catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog"&gt;' \
+		'  &lt;delegatePublic publicIdStartString="-//OASIS/ENTITIES DocBook XML"      catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/&gt;' \
+		'  &lt;delegatePublic publicIdStartString="-//OASIS/DTD DocBook XML"           catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/&gt;' \
+		'  &lt;delegateSystem systemIdStartString="http://www.oasis-open.org/docbook/" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/&gt;' \
+		'  &lt;delegateURI uriStartString="http://www.oasis-open.org/docbook/"         catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/&gt;' \
+		'  &lt;delegateSystem systemIdStartString="$(VBOX_PATH_MANUAL_SRC)"            catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'  &lt;delegateSystem systemIdStartString="$(VBOX_PATH_MANUAL_SRC_SLASHED)"    catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_SRC)"                    catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_SRC_SLASHED)"            catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'  &lt;delegateURI uriStartString="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE)"                catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE_SLASHED)"        catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
+		'&lt;/catalog&gt;'</source>
+Ещё ниже находим правило для генерации вспомогательного каталога, начинающееся со строки:
+<source> $(VBOX_XML_CATALOG_MANUAL): $(MAKEFILE_CURRENT) | $$(dir $$@)</source>
+и аналогичным образом модифицируем строки там. Кроме того, у нескольких первых строк, ссылающихся на файлы в подкаталоге <code>common/</code>, нужно поменять целевой адрес (атрибут <code>uri</code>), убрав из него префикс <code>file://$(VBOX_FILE_URL_MAYBE_SLASH)</code>.
 </li>
 <li>
 Если VB собирается с подписыванием, то для большинства исполняемых файлов выставляется флаг принудительной проверки подписи (опция компоновщика <code>/IntegrityCheck</code>). Если у вас полноценный сертификат, это не проблема. Если нет — VB просто откажется запускаться после установки (даже в тестовом режиме). Я модифицировал файл <code>Config.kmk</code> таким образом, чтобы флаг добавлялся только при использовании полноценного сертификата (в качестве критерия "полноценности" я выбрал указание кросс-сертификата в файле <code>LocalConfig.kmk</code>; см. ниже). Набор исправлений заключается в следующем.
@@ -669,7 +714,7 @@ endif</source>
 <source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_WITH_HARDENING)
  TEMPLATE_XXXXXX_LDFLAGS          += -IntegrityCheck
 endif</source>
-где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. В VB 5.2.22 таких вхождений — 6 штук, по три каждого вида. Здесь нужно добавить условие, что переменная кросс-сертификата определена. В итоге первая строчка должна выглядеть, соответственно, как
+где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. Всего таких вхождений — 6 штук, по три каждого вида. Здесь нужно добавить условие, что переменная кросс-сертификата определена. В итоге первая строчка должна выглядеть, соответственно, как
 <source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_CROSS_CERTIFICATE_FILE)</source>
 или
 <source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_CROSS_CERTIFICATE_FILE) &amp;&amp; defined(VBOX_WITH_HARDENING)</source>
@@ -705,11 +750,12 @@ VBOX_PATH_WISUBSTG  := "C:\Program Files\Microsoft SDKs\Windows\v7.1\Samples\sys
 VBOX_WITH_DOCS := 1
 VBOX_WITH_DOCS_CHM := 1
 VBOX_WITH_DOCS_PACKING := 1
-VBOX_HAVE_XMLLINT := C:\Programs\xmllint\bin\xmllint.exe
-VBOX_PATH_DOCBOOK        := C:/Programs/DocBook/xsl/
-VBOX_PATH_DOCBOOK_DTD    := C:/Programs/DocBook/xml/
-VBOX_XML_CATALOG         := $(PATH_TARGET)/manual/catalog
-VBOX_XML_CATALOG_DOCBOOK := $(PATH_TARGET)/manual/docbook
+VBOX_WITH_ADDITIONS :=
+VBOX_WITH_ADDITIONS_PACKING := 1
+VBOX_HAVE_XMLLINT := 1
+VBOX_XMLLINT := C:\Programs\xmllint\bin\xmllint.exe
+VBOX_PATH_DOCBOOK        := C:/Programs/DocBook/xsl
+VBOX_PATH_DOCBOOK_DTD    := C:/Programs/DocBook/xml
 VBOX_PATH_HTML_HELP_WORKSHOP := "C:\Program Files (x86)\HTML Help Workshop"
 VBOX_PDFLATEX := C:\Programs\MiKTeX\miktex\bin\pdflatex.exe
 VBOX_PDFLATEX_CMD := $(VBOX_PDFLATEX) -halt-on-error -interaction batchmode
@@ -719,8 +765,8 @@ VBOX_INSTALLER_LANGUAGES := en_US
 VBOX_WITH_TESTCASES :=
 VBOX_WITH_VALIDATIONKIT :=
 VBOX_WITH_VBOX_IMG := 1
-VBOX_WITH_VIDEOREC := 1
-VBOX_WITH_AUDIO_VIDEOREC := 1
+VBOX_WITH_RECORDING := 1
+VBOX_WITH_AUDIO_RECORDING := 1
 SDK_VBOX_VPX := 1
 VBOX_WITH_LIBVPX := 1
 SDK_VBOX_OPUS := 1
@@ -731,10 +777,10 @@ VBOX_BUILD_PUBLISHER := _OSE</source>
 <li>В переменных <code>VBOX_CERTIFICATE_SUBJECT_NAME</code> и <code>VBOX_CERTIFICATE_SHA2_SUBJECT_NAME</code> потребуется указать имена используемых вами сертификатов для подписи SHA-1 и SHA-256, соответственно.</li>
 <li>В переменных <code>VBOX_CERTIFICATE_FINGERPRINT</code> и <code>VBOX_CERTIFICATE_SHA2_FINGERPRINT</code> пропишите цифровые отпечатки, которые были скопированы ранее из консоли управления сертификатами.</li>
 <li>Если у вас не самоподписанный сертификат, а покупной, то удалите строчки с переменными <code>VBOX_CROSS_CERTIFICATE_FILE_ARGS</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE_ARGS</code>, а в переменных <code>VBOX_CROSS_CERTIFICATE_FILE</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE</code> (без «<code>_ARGS</code>») задайте полный путь к файлу кросс-сертификата (без него драйверы не будут считаться подписанными). Его можно найти на сайте компании, выпустившей сертификат, или <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/dn170454(v=vs.85).aspx">у Microsoft</a>.</li>
-<li>Для более тонкой настройки подписывания имеется множество других переменных, с помощью которых можно задать хранилище, адрес сервера для наложения временно́й метки или вообще задать произвольный дополнительный набор аргументов для утилиты <code>signtool</code>. В файле <code>Config.kmk</code> под комментарием «Code Signing» (начиная со строки 3281) можно посмотреть, какие там переменные определяются и как они используются.</li>
+<li>Для более тонкой настройки подписывания имеется множество других переменных, с помощью которых можно задать хранилище, адрес сервера для наложения временно́й метки или вообще задать произвольный дополнительный набор аргументов для утилиты <code>signtool</code>. В файле <code>Config.kmk</code> под комментарием «Code Signing» можно посмотреть, какие там переменные определяются и как они используются.</li>
 <li>Если вы устанавливали какие-то из программ в каталоги, отличающиеся от моих, нужно поправить пути в соответствующих переменных.</li>
 <li>Для WiX необходимо указывать путь к исполняемым файлам. Для портативной версии это каталог, куда был распакован архив; для установленной версии это подкаталог <code>bin</code>. Обратите внимание, что если путь содержит пробелы, то необходимо преобразовать его в формат 8.3. Для этого можно воспользоваться командой <code>dir /x</code>. Трюк со взятием в кавычки здесь, увы, не работает.</li>
-<li>Переменная <code>VBOX_BUILD_PUBLISHER</code> задаёт брэндированный суффикс в номере версии. По умолчанию это «_OSE» (т. е. продукт имеет версию «5.2.22_OSE»). Здесь вы можете поменять его на что-то другое или даже на пустую строку, чтобы убрать суффикс совсем (если переменная отсутствует, применится суффикс «_OSE»).</li>
+<li>Переменная <code>VBOX_BUILD_PUBLISHER</code> задаёт брэндированный суффикс в номере версии. По умолчанию это «_OSE» (т. е. продукт имеет версию «6.0.2_OSE»). Здесь вы можете поменять его на что-то другое или даже на пустую строку, чтобы убрать суффикс совсем (если переменная отсутствует, применится суффикс «_OSE»).</li>
 </ul>
 Остальные переменные используются в основном для выбора собираемых компонентов. Ну и главная строка, ради которой всё и затевалось, идёт самой первой: отключаем hardening.<br/>
 </li>
@@ -753,13 +799,13 @@ set BUILD_TARGET_ARCH=amd64
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-openssl32=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x64 --with-libcurl32=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.3-x64 --with-libvpx=C:\Programs\libvpx --with-libopus=C:\Programs\libopus --with-python=C:/Programs/Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-5.2.22_OSE-r126257-MultiArch_amd64.msi</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-6.0.2_OSE-r127994-MultiArch_amd64.msi</source>
 Скрипт <code>configure.vbs</code> проверяет окружение и создаёт файлы конфигурации (<code>AutoConfig.kmk</code> и <code>env.bat</code>). Первый запуск <code>kmk</code> выполняет сборку бинарных компонентов и помещает их в каталог <code>out\win.amd64\bin\</code>. Последняя команда собирает из этих компонентов промежуточный MSI-архив. Важные моменты:
 <ul>
 <li>Слэши в последней команде должны быть обязательно прямыми. С обратными <code>kmk</code> не найдёт сборочные правила.</li>
 <li>Хоть мы собираем 64-битную версию, архив располагается в подкаталоге <code>out\win.x86\…</code>, потому что финальная сборка будет производиться из 32-битного окружения.</li>
 <li>Если вы меняли суффикс версии, то «_OSE» в имени MSI-файла необходимо поправить на то, что вы задали в переменной <code>VBOX_BUILD_PUBLISHER</code>.</li>
-<li>Ревизию в имени MSI-файла (126257) можно найти в файле <code>Config.kmk</code> в определении переменной <code>VBOX_SVN_REV_FALLBACK</code>. Имейте в виду, что это значение может отличаться от ревизии официальных дистрибутивов (например, версия 5.2.22 выпущена под номером 126460). Причины сего мне неизвестны, увы.</li>
+<li>Ревизию в имени MSI-файла (127994) можно найти в файле <code>Config.kmk</code> в определении переменной <code>VBOX_SVN_REV_FALLBACK</code>. Имейте в виду, что это значение может отличаться от ревизии официальных дистрибутивов (например, версия 6.0.2 выпущена под номером 128162). Причины сего мне неизвестны, увы.</li>
 </ul>
 </li>
 <li>
@@ -771,7 +817,7 @@ set BUILD_TARGET_ARCH=x86
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.3-x32 --with-libvpx=C:\Programs\libvpx --with-libopus=C:\Programs\libopus --with-python=C:/Programs/Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.2.22_OSE-r126257-MultiArch.exe</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-6.0.2_OSE-r127994-MultiArch.exe</source>
 Аналогично, суффикс «_OSE» в имени итогового файла надо поменять на свой.<br/>
 Обратите внимание, что в последней команде указано расширение <code>EXE</code>, а не <code>MSI</code>. Мы собираем сразу финальный инсталлятор, а промежуточный 32-битный MSI-архив соберётся автоматически, по зависимостям.
 </li>
@@ -779,69 +825,7 @@ kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-5.2.22_OSE-r12625
 <br/>
 Если ни я, ни вы ничего не перепутали, то после всех этих перипетий у вас должен получиться инсталлятор VirtualBox, отличающийся от Oracle-версии только значком исполняемого файла, картинкой в диалоге «О программе» и, конечно же, отключённым hardening'ом. При желании значок и картинку тоже можно поменять, но это тема отдельного разговора.<br/>
 <br/>
-Для удобства я свёл запуск этих двух цепочек команд в единый файл. Если вам регулярно нужно пересобирать пакет, удобнее пользоваться им.
-<spoiler title="Единый батник">
-<source lang="dos">@echo off
-
-cd /d %~dp0
-for /f "tokens=3" %%i in ('findstr /B /R /C:"VBOX_VERSION_MAJOR *=" Version.kmk') do SET VBOX_VER_MJ=%%i
-for /f "tokens=3" %%i in ('findstr /B /R /C:"VBOX_VERSION_MINOR *=" Version.kmk') do SET VBOX_VER_MN=%%i
-for /f "tokens=3" %%i in ('findstr /B /R /C:"VBOX_VERSION_BUILD *=" Version.kmk') do SET VBOX_VER_BLD=%%i
-for /f "tokens=6" %%i in ('findstr /C:"$Rev: " Config.kmk') do SET VBOX_REV=%%i
-for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER :=" LocalConfig.kmk') do SET VBOX_VER_PUB=%%i
-
-set VERSION=%VBOX_VER_MJ%.%VBOX_VER_MN%.%VBOX_VER_BLD%%VBOX_VER_PUB%-r%VBOX_REV%
-set VBOX_VER_MJ=
-set VBOX_VER_MN=
-set VBOX_VER_BLD=
-set VBOX_VER_PUB=
-
-del /q build-tmp.cmd 2&gt;nul
-
-echo @echo off&gt;&gt; build-tmp.cmd
-echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7&gt;&gt; build-tmp.cmd
-echo color 07&gt;&gt; build-tmp.cmd
-echo echo.&gt;&gt; build-tmp.cmd
-echo echo ### %VERSION%: BUILDING x64 VERSION ###&gt;&gt; build-tmp.cmd
-echo echo.&gt;&gt; build-tmp.cmd
-echo set BUILD_TARGET_ARCH=amd64&gt;&gt; build-tmp.cmd
-echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-openssl32=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x64 --with-libcurl32=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.3-x64 --with-libvpx=C:\Programs\libvpx --with-libopus=C:\Programs\libopus --with-python=C:/Programs/Python&gt;&gt; build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
-echo call env.bat&gt;&gt; build-tmp.cmd
-echo kmk&gt;&gt; build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
-echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-%VERSION%-MultiArch_amd64.msi&gt;&gt; build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
-
-cmd /c build-tmp.cmd
-if ERRORLEVEL 1 exit /b 1
-
-del /q build-tmp.cmd 2&gt;nul
-
-echo @echo off&gt;&gt; build-tmp.cmd
-echo call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7&gt;&gt; build-tmp.cmd
-echo color 07&gt;&gt; build-tmp.cmd
-echo echo.&gt;&gt; build-tmp.cmd
-echo echo ### %VERSION%: BUILDING x32 VERSION ###&gt;&gt; build-tmp.cmd
-echo echo.&gt;&gt; build-tmp.cmd
-echo set BUILD_TARGET_ARCH=x86&gt;&gt; build-tmp.cmd
-echo cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.3-x32 --with-libvpx=C:\Programs\libvpx --with-libopus=C:\Programs\libopus --with-python=C:/Programs/Python&gt;&gt; build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
-echo call env.bat&gt;&gt; build-tmp.cmd
-echo kmk&gt;&gt; build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
-echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-%VERSION%-MultiArch.exe&gt;&gt; build-tmp.cmd
-echo if ERRORLEVEL 1 exit /b ^1&gt;&gt; build-tmp.cmd
-
-cmd /c build-tmp.cmd
-if ERRORLEVEL 1 exit /b 1
-
-del /q build-tmp.cmd AutoConfig.kmk configure.log env.bat 2&gt;nul
-
-echo.
-echo ### BUILD COMPLETE ###
-echo.</source>
-</spoiler>
+Для удобства я свёл запуск этих двух цепочек команд в <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/blob/master/misc/build-all.cmd">единый батник</a>. Если вам регулярно нужно пересобирать пакет, удобнее пользоваться им.
 <br/>
 Как неожиданно обнаружилось после выхода статьи, самоподписанный дистрибутив VB отказывается устанавливаться на современные системы (Windows 8/10), сообщая о невалидной подписи драйверов. Причём это происходит даже в тестовом режиме, где валидность подписи не должна играть никакой роли. Чтобы обойти эту проблему, необходимо добавить использовавшиеся сертификаты в корневое хранилище:
 <ol>
@@ -859,7 +843,7 @@ echo.</source>
 <br/>
 Огромное количество аспектов сборочной системы VB осталось за кадром: как из-за нежелания раздувать текст, так и по причине моей лени, когда, найдя какой-то обходной путь для очередной проблемы, я не лез в глубины системы сборки, а поскорее переходил к следующему этапу. В конце концов, моей главной задачей было не найти оптимальный путь, а собрать, наконец, свой вариант актуального VirtualBox'а: сидеть на 4.3.12 уже поднадоело, но я не мог обновлять один из своих основных рабочих инструментов на нечто, что в любой момент может просто отказаться работать на неопределённый срок.<br/>
 <br/>
-Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Для тех, кому лень поднимать всё вышеописанное нагромождение программ, но интересно расковырять получающийся в итоге дистрибутив, я выложил инсталлятор на Яндекс-диск: <a href="https://yadi.sk/d/gy1viRaaNrFmqw">5.2.22</a>. Все драйверы в них (да и остальные файлы) подписаны недоверенным сертификатом, так что в 64-битной Windows этот вариант VB заработает только в тестовом режиме. Если имеются вопросы, пожелания, предложения — велкам в комментарии или в личку. И да пребудет с вами Open Source!<br/>
+Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Для тех, кому лень поднимать всё вышеописанное нагромождение программ, но интересно расковырять получающийся в итоге дистрибутив, я выложил инсталлятор на Яндекс-диск: <a href="https://yadi.sk/d/Cvvj_7gs8Yf2oA">6.0.2</a>. Все драйверы в них (да и остальные файлы) подписаны недоверенным сертификатом, так что в 64-битной Windows этот вариант VB заработает только в тестовом режиме. Если имеются вопросы, пожелания, предложения — велкам в комментарии или в личку. И да пребудет с вами Open Source!<br/>
 <br/>
 <anchor>history</anchor><h4><img src="<%bullet%>"/> Дополнения</h4><br/>
 <h5>• Обновление статьи от 24.05.2016</h5>
@@ -941,4 +925,12 @@ echo.</source>
 <li>Добавлена поддержка записи экрана, которая по умолчанию отключена в OSE-версии; используются библиотеки libopus и libvpx.</li>
 <li>Актуализированы версии cURL, OpenSSL, gSOAP.</li>
 <li>Добавлен единый патч-файл для внесения всех описанных изменений в дерево исходников VirtualBox.</li>
+</ol>
+<br/>
+<h5>• Обновление статьи от 25.01.2019</h5>
+<ol>
+<li>Внесены уточнения с учётом изменений в VB 6.0.2.</li>
+<li>Улучшен механизм отключения сборки гостевых дополнений.</li>
+<li>Актуализированы версии cURL, gSOAP; откат DocBook XSL Stylesheets к версии 1.69.1 (точнее соответствующей структуре документации).</li>
+<li>Батник для сборки вынесен из текста статьи в загружаемый файл.</li>
 </ol>

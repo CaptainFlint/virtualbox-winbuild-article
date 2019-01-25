@@ -1,8 +1,8 @@
 diff --git a/Config.kmk b/Config.kmk
-index 40349400a8..b7cfde5e71 100644
+index 5e0ea4ad4c..3fa46ca5f9 100644
 --- a/Config.kmk
 +++ b/Config.kmk
-@@ -3707,6 +3707,12 @@ if defined(VBOX_SIGNING_MODE) && "$(KBUILD_TARGET)" == "win"
+@@ -3867,6 +3867,12 @@ if defined(VBOX_SIGNING_MODE) && "$(KBUILD_TARGET)" == "win"
  	$(evalcall VBOX_RE_SIGN_DLL_INTERNAL_FN,$1,$2,$3)\
  	,)$($(1)_0_OUTDIR)/$(3)$(notdir $2)
  
@@ -15,7 +15,7 @@ index 40349400a8..b7cfde5e71 100644
  define VBOX_RE_SIGN_DLL_INTERNAL_FN
  local n = $(3)$(notdir $2)
  ifndef $(1)_VBOX_RE_SIGNED_$(n)
-@@ -3717,7 +3723,7 @@ ifndef $(1)_VBOX_RE_SIGNED_$(n)
+@@ -3877,7 +3883,7 @@ ifndef $(1)_VBOX_RE_SIGNED_$(n)
  	$(call MSG_TOOL,SIGNTOOL,,$<,$@)
  	$(RM) -f -- "$@"
  	$(CP) -- "$<" "$@"
@@ -24,7 +24,7 @@ index 40349400a8..b7cfde5e71 100644
  		/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
  		"$@"
  	$(call VBOX_SIGN_IMAGE_FN,$@)
-@@ -4077,7 +4083,7 @@ ifdef VBOX_WITH_RAW_MODE
+@@ -4236,7 +4242,7 @@ ifdef VBOX_WITH_RAW_MODE
    	-Driver -Subsystem:NATIVE -Incremental:NO -Align:64 -MapInfo:Exports -NoD $(VBOX_VCC_LD_WERR) -Release -Debug -Opt:Ref -Opt:Icf \
    	-Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
    	-Stub:$(PATH_ROOT)/src/VBox/HostDrivers/Support/win/winstub.com
@@ -33,7 +33,7 @@ index 40349400a8..b7cfde5e71 100644
     TEMPLATE_VBoxRc_LDFLAGS          += -IntegrityCheck
    endif
    TEMPLATE_VBoxRc_LIBS               = \
-@@ -4216,7 +4222,7 @@ TEMPLATE_VBoxR0_LDFLAGS             = -Ignore:4197 \
+@@ -4381,7 +4387,7 @@ TEMPLATE_VBoxR0_LDFLAGS             = -Ignore:4197 \
   ifdef VBOX_WITH_DTRACE_R0
  TEMPLATE_VBoxR0_LDFLAGS            += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -42,7 +42,7 @@ index 40349400a8..b7cfde5e71 100644
    TEMPLATE_VBoxR0_LDFLAGS          += -IntegrityCheck
   endif
  TEMPLATE_VBoxR0_LIBS                = \
-@@ -4335,7 +4341,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -4509,7 +4515,7 @@ ifeq ($(KBUILD_TARGET),win)
   ifdef VBOX_WITH_DTRACE_R0DRV
    TEMPLATE_VBOXR0DRV_LDFLAGS          += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -51,7 +51,7 @@ index 40349400a8..b7cfde5e71 100644
    TEMPLATE_VBOXR0DRV_LDFLAGS          += -IntegrityCheck
   endif
   TEMPLATE_VBOXR0DRV_ORDERDEPS          = $(VBOX_SIGN_DRIVER_ORDERDEPS)
-@@ -4775,7 +4781,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -5030,7 +5036,7 @@ ifeq ($(KBUILD_TARGET),win)
   ifdef VBOX_WITH_DTRACE_R3
    TEMPLATE_VBOXR3EXE_LDFLAGS          += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -60,7 +60,7 @@ index 40349400a8..b7cfde5e71 100644
     TEMPLATE_VBOXR3EXE_LDFLAGS         += -IntegrityCheck
   endif
  
-@@ -5623,7 +5629,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -5944,7 +5950,7 @@ ifeq ($(KBUILD_TARGET),win)
  	/DISALLOWLIB:libcmtd.lib \
  	/DISALLOWLIB:msvcrt$(VBOX_VCC_CRT_TYPE_N).lib \
  	/DISALLOWLIB:msvcprt$(VBOX_VCC_CRT_TYPE_N).lib
@@ -69,7 +69,7 @@ index 40349400a8..b7cfde5e71 100644
    TEMPLATE_VBOXMAINEXE_LDFLAGS          += -IntegrityCheck
   endif
   ifdef VBOX_WITH_DTRACE_R3_MAIN
-@@ -6153,7 +6159,7 @@ ifdef VBOX_WITH_QTGUI
+@@ -6528,7 +6534,7 @@ ifdef VBOX_WITH_QTGUI
  	/NOD /INCREMENTAL:NO /MAPINFO:EXPORTS /LargeAddressAware /DynamicBase /NxCompat /Release /Debug /Opt:Ref /Opt:Icf \
  	/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
  	/STUB:$(PATH_ROOT)/src/VBox/HostDrivers/Support/win/winstub.com
@@ -79,10 +79,10 @@ index 40349400a8..b7cfde5e71 100644
    endif
    TEMPLATE_VBOXQTGUIEXE_SDKS += $(VBOX_WINPSDK)
 diff --git a/configure.vbs b/configure.vbs
-index 336730dd40..982e2bc3fb 100644
+index a816231bf0..2c023db1b3 100644
 --- a/configure.vbs
 +++ b/configure.vbs
-@@ -1091,7 +1091,7 @@ sub CheckForVisualCPP(strOptVC, strOptVCCommon, blnOptVCExpressEdition)
+@@ -1095,7 +1095,7 @@ sub CheckForVisualCPP(strOptVC, strOptVCCommon, blnOptVCExpressEdition)
     if (strPathVCCommon <> "") Then
        EnvAppend "PATH", ";" & strPathVCCommon & "/IDE"
     end if
@@ -91,7 +91,7 @@ index 336730dd40..982e2bc3fb 100644
        MsgError "Executing '" & strClExe & "' (which we believe to be the Visual C++ compiler driver) failed."
        exit sub
     end if
-@@ -1508,41 +1508,38 @@ function CheckForMinGW32Sub(strPathMingW32, strPathW32API)
+@@ -1512,41 +1512,38 @@ function CheckForMinGW32Sub(strPathMingW32, strPathW32API)
     if strPathW32API = "" then strPathW32API = strPathMingW32
     LogPrint "trying: strPathMingW32="  &strPathMingW32 & " strPathW32API=" & strPathW32API
  
@@ -155,7 +155,7 @@ index 336730dd40..982e2bc3fb 100644
                 CheckForMinGW32Sub = True
                 g_strSubOutput = strVer
              else
-@@ -1981,7 +1978,6 @@ function CheckForCurlSub(strPathCurl)
+@@ -1986,7 +1983,6 @@ function CheckForCurlSub(strPathCurl)
     CheckForCurlSub = False
     LogPrint "trying: strPathCurl=" & strPathCurl
     if   LogFileExists(strPathCurl, "include/curl/curl.h") _
@@ -163,7 +163,7 @@ index 336730dd40..982e2bc3fb 100644
      And LogFindFile(strPathCurl, "libcurl.lib") <> "" _
        then
           CheckForCurlSub = True
-@@ -1990,6 +1986,80 @@ end function
+@@ -1995,6 +1991,80 @@ end function
  
  
  
@@ -244,7 +244,7 @@ index 336730dd40..982e2bc3fb 100644
  ''
  ' Checks for any Qt5 binaries.
  sub CheckForQt(strOptQt5)
-@@ -2064,7 +2134,7 @@ function CheckForPython(strPathPython)
+@@ -2069,7 +2139,7 @@ function CheckForPython(strPathPython)
     LogPrint "trying: strPathPython=" & strPathPython
  
     if LogFileExists(strPathPython, "python.exe") then
@@ -253,7 +253,7 @@ index 336730dd40..982e2bc3fb 100644
        CheckForPython = True
     end if
  
-@@ -2127,6 +2197,8 @@ sub usage
+@@ -2132,6 +2202,8 @@ sub usage
     Print "  --with-libcurl32=PATH (only for 64-bit targets)"
     Print "  --with-python=PATH    "
     Print "  --with-mkisofs=PATH   "
@@ -262,7 +262,7 @@ index 336730dd40..982e2bc3fb 100644
  end sub
  
  
-@@ -2165,6 +2237,8 @@ Sub Main
+@@ -2170,6 +2242,8 @@ Sub Main
     strOptCurl32 = ""
     strOptPython = ""
     strOptMkisofs = ""
@@ -271,7 +271,7 @@ index 336730dd40..982e2bc3fb 100644
     blnOptDisableCOM = False
     blnOptDisableUDPTunnel = False
     blnOptDisableSDL = False
-@@ -2222,6 +2296,10 @@ Sub Main
+@@ -2227,6 +2301,10 @@ Sub Main
              strOptPython = strPath
           case "--with-mkisofs"
              strOptMkisofs = strPath
@@ -282,7 +282,7 @@ index 336730dd40..982e2bc3fb 100644
           case "--disable-com"
              blnOptDisableCOM = True
           case "--enable-com"
-@@ -2313,6 +2391,9 @@ Sub Main
+@@ -2319,6 +2397,9 @@ Sub Main
     if (strOptMkisofs <> "") then
       CheckForMkisofs strOptMkisofs
     end if
@@ -292,103 +292,106 @@ index 336730dd40..982e2bc3fb 100644
     if g_blnInternalMode then
        EnvPrint "call " & g_strPathDev & "/env.cmd %1 %2 %3 %4 %5 %6 %7 %8 %9"
     end if
-diff --git a/src/VBox/Additions/Makefile.kmk b/src/VBox/Additions/Makefile.kmk
-index 31ef2e8e74..0a351c3cd6 100644
---- a/src/VBox/Additions/Makefile.kmk
-+++ b/src/VBox/Additions/Makefile.kmk
-@@ -265,21 +265,6 @@ ifdef VBOX_WITH_ADDITIONS_ISO.win.x86
- 	cert/VBoxCertUtil.exe=$(VBOX_PATH_ADDITIONS.win.x86)/VBoxCertUtil.exe
- endif # win.x86
+diff --git a/doc/manual/Config.kmk b/doc/manual/Config.kmk
+index 5ded41873a..40afaed8df 100644
+--- a/doc/manual/Config.kmk
++++ b/doc/manual/Config.kmk
+@@ -145,6 +145,9 @@ ifdef VBOX_XML_CATALOG
+  # quite correctly with file:////, doing incorrect filename transformations)
+  # and on Windows (where the absolute path starts with a drive letter).
+  VBOX_FILE_URL_MAYBE_SLASH = $(if $(eq $(KBUILD_HOST),win),/,)
++ # Triple-slash for raw paths
++ VBOX_PATH_MANUAL_SRC_SLASHED = $(subst :/,:///,$(VBOX_PATH_MANUAL_SRC))
++ VBOX_PATH_MANUAL_OUTBASE_SLASHED = $(subst :/,:///,$(VBOX_PATH_MANUAL_OUTBASE))
+  #
+  # To avoid network I/O for fetching DTDs, we generate catalogs mapping the public
+  # entity IDs to local files.  (Obviously, only done when we have local files.)
+@@ -161,9 +164,12 @@ ifdef VBOX_XML_CATALOG
+ 		'  <delegateSystem systemIdStartString="http://www.oasis-open.org/docbook/" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/>' \
+ 		'  <delegateURI uriStartString="http://www.oasis-open.org/docbook/"         catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/>' \
+ 		'  <delegateSystem systemIdStartString="$(VBOX_PATH_MANUAL_SRC)"            catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
++		'  <delegateSystem systemIdStartString="$(VBOX_PATH_MANUAL_SRC_SLASHED)"    catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
+ 		'  <delegateURI uriStartString="$(VBOX_PATH_MANUAL_SRC)"                    catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
++		'  <delegateURI uriStartString="$(VBOX_PATH_MANUAL_SRC_SLASHED)"            catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
+ 		'  <delegateURI uriStartString="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
+ 		'  <delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE)"                catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
++		'  <delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE_SLASHED)"        catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
+ 		'</catalog>'
  
--if defined(VBOX_WITH_ADDITIONS_ISO.win.amd64) || defined(VBOX_WITH_ADDITIONS_ISO.win.x86)
-- ifndef VBOX_SIGNING_MODE
--  GUESTADDITIONS_FILESPEC.win =
-- else if "$(VBOX_WITH_CORP_CODE_SIGNING)" == "all" || (!defined(VBOX_CERTIFICATE_SHA2_SUBJECT_NAME) && !defined(VBOX_WITH_CORP_CODE_SIGNING))
--  GUESTADDITIONS_FILESPEC.win = cert/vbox.cer=$(VBOX_PATH_ADDITIONS.win)/vbox.cer
-- else
--  GUESTADDITIONS_FILESPEC.win = \
--  	cert/vbox-sha1.cer=$(VBOX_PATH_ADDITIONS.win)/vbox-sha1.cer \
--  	cert/vbox-sha256.cer=$(VBOX_PATH_ADDITIONS.win)/vbox-sha256.cer
--  if defined(VBOX_CERTIFICATE_SHA2_SUBJECT_NAME) && defined(VBOX_WITH_CORP_CODE_SIGNING)
--   GUESTADDITIONS_FILESPEC.win += cert/vbox-sha256-r3.cer=$(VBOX_PATH_ADDITIONS.win)/vbox-sha256-r3.cer
--  endif
-- endif
--endif
--
- # haiku
- ifdef VBOX_WITH_ADDITIONS_ISO.haiku.x86
-  VBOX_PATH_ADDITIONS.haiku.x86 = $(PATH_OUT_BASE)/haiku.x86/$(KBUILD_TYPE)/bin/additions
-@@ -308,26 +293,8 @@ GUESTADDITIONS_FILESPEC_ALL = \
- # Build the Guest Additions ISO image.
- #
- ifndef VBOX_WITHOUT_ADDITIONS_ISO
--$(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso: \
--		$(filter-out %=deleteme=,$(subst =,=deleteme= , $(GUESTADDITIONS_FILESPEC_ALL))) \
--		$(VBOX_SVN_REV_KMK) \
--		$(VBOX_PATH_ADDITIONS_SRC)/Makefile.kmk \
--		| $(if-expr defined(VBOX_USE_RTISOMAKER),$(VBOX_RTISOMAKER),)
--	$(call MSG_TOOL,RTIsoMaker,,$@)
--	$(QUIET)$(MKDIR) -p $(@D)
--	$(VBOX_RTISOMAKER) \
--		--output $@ \
--		--iso-level 3 \
--		--rock-ridge \
--		--joliet \
--		--rational-attribs \
--               --random-order-verification 2048 \
--		$(addprefix /,$(GUESTADDITIONS_FILESPEC_ALL)) \
--               $(foreach spec, $(filter %.run %.sh,$(GUESTADDITIONS_FILESPEC_ALL)) \
--			, --chmod a+x:/$(substr $(spec), 1, $(expr $(pos =,$(spec)) - 1))) \
--		--volume-id="VBOXADDITIONS_$(VBOX_VERSION_STRING_RAW)_$(VBOX_SVN_REV)" \
--               --name-setup=joliet \
--		--volume-id="VBox_GAs_$(VBOX_VERSION_STRING_RAW)"
-+$(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso:
+  # Create a docbook catalog file for xsltproc that points to the local docbook files.
+@@ -211,22 +217,37 @@ ifdef VBOX_XML_CATALOG
+ 		'<?xml version="1.0"?>' \
+ 		'<!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">' \
+ 		'<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">' \
+-		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-accessibility-en.xml"            uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/>' \
+-		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-support-en.xml"                  uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-accessibility-en.xml"            uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/common/oracle-accessibility-en.xml"          uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-support-en.xml"                  uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/common/oracle-support-en.xml"                uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_ChangeLogImpl.xml"                  uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/user_ChangeLogImpl.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_ChangeLogImpl.xml"                uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/user_ChangeLogImpl.xml"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_VBoxManage_CommandsOverview.xml"    uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/user_VBoxManage_CommandsOverview.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_VBoxManage_CommandsOverview.xml"  uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/user_VBoxManage_CommandsOverview.xml"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/titlepage-htmlhelp.xsl"                        uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/titlepage-htmlhelp.xsl"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/titlepage-htmlhelp.xsl"                      uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/titlepage-htmlhelp.xsl"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_man_VBoxManage-mediumio.xml"        uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-mediumio.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_man_VBoxManage-mediumio.xml"      uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-mediumio.xml"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_man_VBoxManage-debugvm.xml"         uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-debugvm.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_man_VBoxManage-debugvm.xml"       uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-debugvm.xml"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_man_VBoxManage-extpack.xml"         uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-extpack.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_man_VBoxManage-extpack.xml"       uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-extpack.xml"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_man_VBoxManage-unattended.xml"      uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-unattended.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_man_VBoxManage-unattended.xml"    uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-unattended.xml"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_isomakercmd-man.xml"                uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_isomakercmd-man.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_isomakercmd-man.xml"              uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_isomakercmd-man.xml"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/SDKRef_apiref.xml"                       uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/SDKRef_apiref.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/SDKRef_apiref.xml"                     uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/SDKRef_apiref.xml"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/all-entities.ent"                        uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/all-entities.ent"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/all-entities.ent"                      uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/all-entities.ent"/>' \
+ 		'  <uri name="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/en_US/all-entities.ent" uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/all-entities.ent"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/html/docbook.xsl"                              uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/html/docbook.xsl"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/html/docbook.xsl"                            uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/html/docbook.xsl"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/html/chunk.xsl"                                uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/html/chunk.xsl"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/html/chunk.xsl"                              uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/html/chunk.xsl"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/htmlhelp/htmlhelp.xsl"                         uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/htmlhelp/htmlhelp.xsl"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/htmlhelp/htmlhelp.xsl"                       uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/htmlhelp/htmlhelp.xsl"/>' \
+ 		'</catalog>'
+ 
+ endif # VBOX_XML_CATALOG
+diff --git a/doc/manual/Makefile.kmk b/doc/manual/Makefile.kmk
+index da8f685fd8..38635616de 100644
+--- a/doc/manual/Makefile.kmk
++++ b/doc/manual/Makefile.kmk
+@@ -390,6 +390,7 @@ $$(VBOX_PATH_MANUAL_OUTBASE)/$(1)/user_$(2): $(3) \
+ 		$$(VBOX_VERSION_STAMP) | $$(dir $$@)
+ 	$$(call MSG_TOOL,xsltproc $$(notdir $$(filter %.xsl,$$^)),,$$(filter %.xml,$$^),$$@)
+ 	$$(QUIET)$$(RM) -f "$$@"
++	$$(QUIET)$$(MKDIR) -p "$$(@D)"
+ 	$$(QUIET)$$(call VBOX_XSLTPROC_WITH_CAT) --output $$@ $$(VBOX_PATH_MANUAL_SRC)/docbook-refentry-to-manual-sect1.xsl $$<
+ endef
+ $(foreach lang,$(VBOX_MANUAL_LANGUAGES),$(foreach file,$(VBOX_MANUAL_XML_REFENTRY_FILES) \
+diff --git a/src/VBox/Makefile.kmk b/src/VBox/Makefile.kmk
+index 6e792e662f..2e4b1b5ab5 100644
+--- a/src/VBox/Makefile.kmk
++++ b/src/VBox/Makefile.kmk
+@@ -91,6 +91,11 @@ else
+  ifdef VBOX_WITH_ADDITIONS
+   include $(PATH_SUB_CURRENT)/Additions/Makefile.kmk
+  endif
++ ifndef VBOX_WITHOUT_ADDITIONS_ISO
++  $(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso:
++	$(QUIET)$(MKDIR) -p $(@D)
 +	$(VBOX_RETRY) $(TOOL_CURL_FETCH) http://download.virtualbox.org/virtualbox/$(VBOX_VERSION_STRING_RAW)/VBoxGuestAdditions_$(VBOX_VERSION_STRING_RAW).iso -o $@
- 
- $(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.zip: $(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso
- 	$(call MSG_L1,Zipping image $@)
-diff --git a/src/VBox/Additions/WINNT/tools/Makefile.kmk b/src/VBox/Additions/WINNT/tools/Makefile.kmk
-index 17f4f98c9b..0b2e204f4e 100644
---- a/src/VBox/Additions/WINNT/tools/Makefile.kmk
-+++ b/src/VBox/Additions/WINNT/tools/Makefile.kmk
-@@ -41,32 +41,5 @@ $$(VBoxCertUtil_0_OUTDIR)/VBoxCertUtil-win-icon.rc: $(VBOX_WINDOWS_ADDITIONS_ICO
- 	$(APPEND) $@ 'IDI_VIRTUALBOX ICON DISCARDABLE "$(subst /,\\,$(VBOX_WINDOWS_ADDITIONS_ICON_FILE))"'
- 
- 
--#
--# Install all the certificates we use here.
--#
--INSTALLS += AdditionsInstCertFiles
--AdditionsInstCertFiles_TEMPLATE = VBoxGuestR3Exe
--AdditionsInstCertFiles_SOURCES  =
--AdditionsInstCertFiles_CLEAN    =
--ifdef VBOX_SIGNING_MODE
-- define def_VBoxAdditionsInstCertFiles
--  AdditionsInstCertFiles_SOURCES += $$(AdditionsInstCertFiles_0_OUTDIR)/$(1)=>$1
--  AdditionsInstCertFiles_CLEAN   += $$(AdditionsInstCertFiles_0_OUTDIR)/$(1)
--  $$$$(AdditionsInstCertFiles_0_OUTDIR)/$(1): $$(2) | $$$$(dir $$$$@) $(VBOX_RTSIGNTOOL)
--	$(QUIET)$(RM) -f -- "$$@"
--	$(VBOX_RTSIGNTOOL) extract-exe-signer-cert --signature-index $3 --exe "$$<" --output "$$@" --der
-- endef
--
-- if "$(VBOX_WITH_CORP_CODE_SIGNING)" == "all" || (!defined(VBOX_CERTIFICATE_SHA2_SUBJECT_NAME) && !defined(VBOX_WITH_CORP_CODE_SIGNING))
--  $(evalcall2 def_VBoxAdditionsInstCertFiles,vbox.cer,$(VBOX_PATH_ADDITIONS)/VBoxGuest.sys,0)
-- else
--  $(evalcall2 def_VBoxAdditionsInstCertFiles,vbox-sha1.cer,$(VBOX_PATH_ADDITIONS)/VBoxGuest.sys,0)
--  $(evalcall2 def_VBoxAdditionsInstCertFiles,vbox-sha256.cer,$(VBOX_PATH_ADDITIONS)/VBoxGuest.sys,1)
--  if defined(VBOX_CERTIFICATE_SHA2_SUBJECT_NAME) && defined(VBOX_WITH_CORP_CODE_SIGNING)
--   $(evalcall2 def_VBoxAdditionsInstCertFiles,vbox-sha256-r3.cer,$(VBOX_PATH_ADDITIONS)/VBoxCertUtil.exe,1)
--  endif
-- endif
--endif
--
- include $(FILE_KBUILD_SUB_FOOTER)
- 
++ endif
+  ifdef VBOX_WITH_VALIDATIONKIT
+   include $(PATH_SUB_CURRENT)/ValidationKit/Makefile.kmk
+  endif
 diff --git a/src/VBox/Runtime/Makefile.kmk b/src/VBox/Runtime/Makefile.kmk
-index 408a620f7a..c5c159c2b2 100644
+index b3eb641754..538c40da90 100644
 --- a/src/VBox/Runtime/Makefile.kmk
 +++ b/src/VBox/Runtime/Makefile.kmk
-@@ -1691,7 +1691,9 @@ endif
+@@ -2169,7 +2169,9 @@ endif
  VBoxRT_LIBS.win                = \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/vccomsup.lib \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/wbemuuid.lib \
@@ -399,7 +402,7 @@ index 408a620f7a..c5c159c2b2 100644
  VBoxRT_LDFLAGS.darwin          = \
  	-framework IOKit \
  	-framework CoreFoundation \
-@@ -1839,7 +1841,9 @@ endif
+@@ -2314,7 +2316,9 @@ endif
  VBoxRT-x86_LIBS.win                = \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/vccomsup.lib \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/wbemuuid.lib \
@@ -411,10 +414,10 @@ index 408a620f7a..c5c159c2b2 100644
  VBoxRT-x86_SOURCES.win = $(filter-out %.def %.rc,$(VBoxRT_SOURCES.win)) \
  	$(VBoxRT-x86_0_OUTDIR)/VBoxRT-x86.def
 diff --git a/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def b/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
-index 91a195ca2e..58b6843f6f 100644
+index 563562ced2..19283657e5 100644
 --- a/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
 +++ b/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
-@@ -204,6 +204,7 @@
+@@ -205,6 +205,7 @@
      X509_VERIFY_PARAM_free
      X509_VERIFY_PARAM_new
      X509_VERIFY_PARAM_set_flags
