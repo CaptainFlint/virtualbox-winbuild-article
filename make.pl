@@ -129,7 +129,20 @@ sub makeTarget($$) {
 	binmode($f);
 	read($f, $data, -s $f);
 	close($f);
-	# Language-specific processing: keep the text from the currently selected language tags, and delete all the others
+	# Generate table of contents
+	my $contents = '';
+	while ($data =~ m!<anchor>([^<>]+)</anchor><h4><img src="<%bullet%>"/> (.*?)</h4>!gs) {
+		$contents .= "» <a href=\"#$1\">$2</a><br/>\r\n";
+	}
+	$data =~ s!<%contents%>\r?\n!$contents!gs;
+	# Language-specific processing: keep the text from the currently selected language tags, and delete all the others.
+	# But first, delete the cosmetical EOLs between the language blocks.
+	my @langs = sort(keys(%langData));
+	for my $l1 (@langs) {
+		for my $l2 (@langs) {
+			$data =~ s!</$l1>\r?\n<$l2>!</$l1><$l2>!gs;
+		}
+	}
 	for my $checkLang (sort(keys(%langData))) {
 		if ($checkLang eq $lang) {
 			$data =~ s!<$checkLang>(.*?)</$checkLang>!$1!gs;
