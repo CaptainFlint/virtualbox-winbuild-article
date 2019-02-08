@@ -9,39 +9,33 @@
 <cut text="Я заинтересован" />
 <h4><img src="<%bullet%>"/> Содержание</h4>
 <blockquote>
-» <a href="#task">Постановка задачи</a><br/>
-» <a href="#warnings">Пара предупреждений</a><br/>
-» <a href="#environment">Готовим окружение</a><br/>
-» <a href="#environment-inst">Особенности установки программ</a><br/>
-» <a href="#final-touches">Последние штрихи</a><br/>
-» <a href="#build-vb">Собираем VirtualBox</a><br/>
-» <a href="#afterword">Послесловие</a><br/>
-» <a href="#history">Дополнения</a><br/>
+<%contents%>
 </blockquote>
 <br/>
 
 <anchor>task</anchor><h4><img src="<%bullet%>"/> Постановка задачи</h4><br/>
 Изначально я планировал упростить себе задачу и обойтись минимальной пересборкой, чтобы устанавливать официальный дистрибутив и просто подменять в нём бинарные файлы. Однако оказалось, что такой подход не сработает, поскольку не учитывает использование системных механизмов установки и регистрации драйверов и COM-компонентов. Можно было бы попытаться разобраться в деталях и написать автоматизирующий скрипт, но я решил замахнуться на более крупную дичь: самостоятельно собрать полноценный дистрибутив, максимально близкий к официальному и отличающийся от него только отсутствием hardening'а.<br/>
 <br/>
-Сразу скажу, что на 100% задачу решить не удалось. Слабым звеном оказались гостевые дополнения, которые в официальном пакете собраны под Windows (32- и 64-битную), Linux, Solaris и OS/2. В комментариях соответствующего Makefile указано, что сборка осуществляется удалённо на разных машинах, а настраивать такой комплект виртуалок мне не улыбалось. В итоге я решил собирать из исходных кодов всё, кроме дополнений, ISO-образ которых буду просто скачивать с сервера Oracle. Я пока не исследовал вопрос наличия hardening'а в дополнениях, но даже если он там есть, сообщений о вызванных им проблемах мне до сих пор не попадалось.<br/>
+Сразу скажу, что на 100% задачу решить не удалось. Слабым звеном оказались гостевые дополнения, которые в официальном пакете собраны под Windows (32- и 64-битную), OS/2, Linux и некоторые другие *NIX-системы. В комментариях соответствующего Makefile указано, что сборка осуществляется удалённо на разных машинах, а настраивать такой комплект виртуалок мне не улыбалось. В итоге я решил собирать из исходных кодов всё, кроме дополнений, ISO-образ которых буду просто скачивать с сервера Oracle. Я пока не исследовал вопрос наличия hardening'а в дополнениях, но даже если он там есть, сообщений о вызванных им проблемах мне до сих пор не попадалось.<br/>
 <br/>
 <anchor>warnings</anchor><h4><img src="<%bullet%>"/> Пара предупреждений</h4><br/>
 <h5>• Проблемы безопасности</h5><br/>
-Про hardening известно, что добавили его не просто так, а для закрытия некой уязвимости VB. Внятно рассказать о сути уязвимости Oracle категорически отказывается, несмотря на то, что с момента фикса прошло больше двух лет. Ограничиваются лишь намёками на «очень уязвимую архитектуру Windows, разрешающую загрузку сторонних модулей в чужие процессы». Вопрос о том, как же без подобных ухищрений умудряются работать другие системы виртуализации (да и вообще все программы), также остаётся без ответа. Из отдельных скупых фраз на официальном форуме удалось выудить информацию, что проблема связана с повышением привилегий на хостовой машине, и что для этой уязвимости VB есть реально использующиеся эксплойты. Если это вас не пугает, можете продолжать чтение, но я вас предупредил.<br/>
+Про hardening известно, что добавили его не просто так, а для закрытия некой уязвимости VB. Подробно рассказать о сути уязвимости Oracle категорически отказывается, несмотря на то, что в официальных дистрибутивах проблема исправлена много лет назад. В общих чертах речь идёт о том, что системный механизм внедрения библиотек в чужие процессы в случае VB может приводить к неавторизованному повышению привилегий на хостовой машине, и что для этой уязвимости VB есть реально использующиеся эксплойты. Если это вас не пугает, можете продолжать чтение, но я вас предупредил.<br/>
+
 <br/>
 <h5>• Подписывание драйверов</h5><br/>
-Как известно, 64-битная Windows в обычном режиме запрещает загрузку драйверов, не подписанных сертификатом с цепочкой доверия, ведущей до корневого сертификата Microsoft (а в Windows 10 драйверы и вовсе должны быть подписаны непосредственно самой Microsoft). Поэтому прежде чем компилировать VB даже для личного использования, необходимо продумать решение этой проблемы: либо купить сертификат, либо попробовать воспользоваться сервисами подписывания драйверов для разработчиков Open Source (если они, конечно, согласятся подписать заведомо уязвимый драйвер), либо перевести свою Windows в тестовый режим и использовать самоподписанный тестовый сертификат.<br/>
+Как известно, начиная с Vista, 64-битная Windows в обычном режиме запрещает загрузку драйверов, не подписанных сертификатом с цепочкой доверия, ведущей до корневого сертификата Microsoft (а в Windows 10 при загрузке с включённым Secure Boot драйверы и вовсе должны быть подписаны непосредственно самой Microsoft). Поэтому прежде чем компилировать VB даже для личного использования, необходимо продумать решение этой проблемы: либо купить сертификат, либо попробовать воспользоваться сервисами подписывания драйверов для разработчиков open source (если они, конечно, согласятся подписать заведомо уязвимый драйвер), либо перевести свою Windows в тестовый режим и использовать самоподписанный тестовый сертификат.<br/>
 <br/>
-Далее я буду ориентироваться на этот последний вариант, но в нужных местах укажу, как поменяется процедура при наличии полноценного сертификата (хотя я пока не смог разобраться, как предполагается выполнять сборку с подписыванием для Windows 10).<br/>
+Далее я буду ориентироваться на этот последний вариант, но в нужных местах укажу, как поменяется процедура при наличии полноценного сертификата (хотя я пока не смог разобраться, как предполагается выполнять сборку с подписыванием для Windows 10, поэтому о нём в статье ничего не говорится).<br/>
 <br/>
 <anchor>environment</anchor><h4><img src="<%bullet%>"/> Готовим окружение</h4><br/>
-Официально в качестве сборочной системы рекомендуется Windows версии от XP SP3 до 7. Всю работу я проводил в Windows 7 SP1 x64, но, думаю, что с более современными версиями проблем возникнуть не должно. Если вы выделяете для сборки отдельную машину (реальную или виртуальную), имейте в виду, что ей необходим доступ в Интернет.<br/>
+Официально в качестве сборочной системы рекомендуется Windows версии от 7 до 10. Всю работу я проводил в Windows 7 SP1 x64, но, думаю, что с другими версиями проблем возникнуть не должно. Если вы выделяете для сборки отдельную машину (реальную или виртуальную), имейте в виду, что ей необходим доступ в Интернет.<br/>
 <br/>
 Для создания сборочного окружения потребуется немаленький набор программ. Если для программы присутствует портабельная версия, я использую её, а не инсталлятор.<br/>
 <br/>
 Следующий набор программ поставляется только в виде инсталляторов (по крайней мере, официально). Для Visual Studio и SDK/WDK важно соблюдать порядок установки, как указано ниже. После установки крайне желательно установить обновления через Windows Update с включённой опцией поддержки всех продуктов Microsoft.<br/>
 <ul>
-<li><b>Visual Studio 2010 Professional</b><br/>Для полноценной сборки требуется именно 2010, и именно Professional. В версии 2010 Express нет библиотеки ATL, необходимой для сборки COM API, через который работают фронт-энды. Я сделал несколько попыток перенести проект на VS 2013 или 2015 Community Edition, чтобы избавиться от необходимости платной лицензии, но, увы, безуспешно.</li>
+<li><b>Visual Studio 2010 Professional</b><br/>Для полноценной сборки требуется именно 2010, причём не ниже Professional. В версии 2010 Express нет библиотеки ATL, необходимой для сборки COM API, через который работают фронт-энды. Я сделал несколько попыток перенести проект на VS 2013 или 2015 Community Edition, чтобы избавиться от необходимости платной лицензии (которую к тому же сейчас крайне проблематично купить), но, увы, безуспешно.</li>
 <li><b><a href="http://www.microsoft.com/en-us/download/details.aspx?id=8279">Windows SDK v7.1</a></b></li>
 <li><b><a href="https://www.microsoft.com/en-US/download/details.aspx?id=23691">Visual Studio 2010 SP1</a></b></li>
 <li><b><a href="https://www.microsoft.com/en-us/download/details.aspx?id=4422">Visual C++ 2010 SP1 Compiler Update for SDK 7.1</a></b></li>
@@ -83,7 +77,7 @@
 <br/>
 <ul>
 <li><b>SDK 8.1</b><br/>
-Для сборки будет использоваться SDK версии 7.1, версия 8.1 требуется только для утилиты SignTool: в 7.1 отсутствует поддержка двойного подписывания SHA-1/SHA-256. Если у вас есть компьютер с установленным SDK версии 8.1 или более поздней, можно просто скопировать утилиту signtool.exe оттуда (со всеми зависимостями) и указать соответствующий путь в файле <code>LocalConfig.kmk</code> (см. ниже).
+Для сборки будет использоваться SDK версии 7.1, версия 8.1 требуется только для утилиты SignTool: в 7.1 отсутствует поддержка двойного подписывания SHA-1/SHA-256. Если у вас есть компьютер с установленным SDK версии 8.1 или более поздней, можно просто скопировать утилиту <code>signtool.exe</code> оттуда (со всеми зависимостями) и указать соответствующий путь в файле <code>LocalConfig.kmk</code> (см. <a href="#final-touches-localconfig">ниже</a>).
 </li>
 <li><b>WiX</b><br/>
 Это инструмент для создания MSI-инсталляторов. Хоть финальный вариант инсталлятора и является EXE-файлом, внутри он содержит два MSI, так что WiX тут необходим. Если вам достаточно простой компиляции бинарников, то этот пакет не понадобится.
@@ -161,31 +155,35 @@
 <li>Распаковываем архив с исходным кодом Qt в каталог <code>C:\Programs\Qt\</code> и переименовываем полученный подкаталог <code>qt-everywhere-opensource-src-5.6.3</code> в <code>5.6.3-src</code>.</li>
 <li>Рядом создаём каталог <code>build-x32</code>, в котором будет происходить сборка.</li>
 <li>
-Открываем консоль, выполняем следующие команды:
-<source lang="dos">cd /d C:\Programs\Qt\build-x32
+Открываем консоль, выполняем следующие команды для подготовки окружения:
+<source lang="dos">
+cd /d C:\Programs\Qt\build-x32
 SET QTVER=5.6.3
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
 COLOR 07
 SET QTDIR=C:\Programs\Qt\%QTVER%-x32
 SET PATH=%QTDIR%\bin;%PATH%
-SET QMAKESPEC=win32-msvc2010</source>
+SET QMAKESPEC=win32-msvc2010
+</source>
 Команда <code>color</code> отключает зелёный цвет шрифта, устанавливаемый скриптом <code>SetEnv.Cmd</code>.
 </li>
 <li>
 Теперь запускаем <code>configure.bat</code> из каталога <code>5.6.3-src</code>. Поскольку бо́льшая часть Qt в VB не используется, можно сильно ускорить сборку, отключив ненужные компоненты, но необходимо учитывать, что к некоторым опциям VB относится очень щепетильно. В частности, я наткнулся на следующее:
 <ul>
 <li>OpenGL ES 2 не поддерживается (компиляция VB не может увидеть некоторые заголовочные файлы).</li>
-<li>Поддержка FreeType должна быть включена (без неё не соберётся плагин qoffscreen, использующийся в VB).</li>
+<li>Поддержка FreeType должна быть включена (без неё не соберётся плагин <code>qoffscreen</code>, использующийся в VB).</li>
 </ul>
 Вот итоговая команда, которую я использовал у себя:
 <source lang="dos">..\5.6.3-src\configure.bat -prefix c:\Programs\Qt\5.6.3-x32 -mp -opensource -confirm-license -nomake tests -nomake examples -no-compile-examples -release -shared -pch -no-ltcg -accessibility -no-sql-sqlite -opengl desktop -no-openvg -no-nis -no-iconv -no-evdev -no-mtdev -no-inotify -no-eventfd -largefile -no-system-proxies -qt-zlib -qt-pcre -no-icu -qt-libpng -qt-libjpeg -qt-freetype -no-fontconfig -qt-harfbuzz -no-angle -incredibuild-xge -no-plugin-manifests -qmake -qreal double -rtti -strip -no-ssl -no-openssl -no-libproxy -no-dbus -no-audio-backend -no-wmf-backend -no-qml-debug -no-direct2d -directwrite -no-style-fusion -native-gestures -skip qt3d -skip qtactiveqt -skip qtandroidextras -skip qtcanvas3d -skip qtconnectivity -skip qtdeclarative -skip qtdoc -skip qtenginio -skip qtgraphicaleffects -skip qtlocation -skip qtmacextras -skip qtmultimedia -skip qtquickcontrols -skip qtquickcontrols2 -skip qtscript -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtwayland -skip qtwebchannel -skip qtwebengine -skip qtwebsockets -skip qtwebview -skip qtx11extras -skip qtxmlpatterns</source>
 </li>
 <li>
-Указанный каталог установки (опция <code>-prefix</code>) Qt записывает внутрь исходного кода при конфигурировании, так что собранная библиотека будет помнить этот путь. Это приводит к тому, что при запуске Qt-приложение по умолчанию будет искать плагины по этому пути, и только если ничего не нашлось, обратится к собственному каталогу. В большинстве ситуаций это работает корректно, но если вдруг на целевой машине в каталоге <code>c:\Programs\Qt\5.6.3-x32</code> окажется отличающаяся сборка Qt (с другими флагами), то VB при запуске свалится с ошибкой.<br/>
+Указанный каталог установки (опция <code>-prefix</code>) Qt записывает внутрь генерируемых промежуточных файлов исходного кода при конфигурировании, так что собранная библиотека будет помнить этот путь. Это приводит к тому, что при запуске Qt-приложение по умолчанию будет искать плагины по этому пути, и только если ничего не нашлось, обратится к собственному каталогу. В большинстве ситуаций это работает корректно, но если вдруг на целевой машине в каталоге <code>c:\Programs\Qt\5.6.3-x32</code> окажется отличающаяся сборка Qt (с другими флагами), то VB при запуске свалится с ошибкой.<br/>
 Избежать этого можно двумя путями: либо добавить в каталог VB файл <code>qt.conf</code> с содержимым:
-<source>[Paths]
-Plugins=.</source>
-либо подправить сохранённый в Qt пусть установки, чтобы он по умолчанию указывал на каталог программы. Я пошёл по второму пути, чтобы итоговая установка VB выглядела более аккуратной. Для этого нужно открыть файл <code>C:\Programs\Qt\build-x32\qtbase\src\corelib\global\qconfig.cpp</code>, который создался конфигуратором, найти там строчку вида:
+<source>
+[Paths]
+Plugins=.
+</source>
+либо подправить сохранённый в Qt путь установки, чтобы он по умолчанию указывал на каталог программы. Я пошёл по второму пути, чтобы итоговая установка VB выглядела более аккуратной. Для этого нужно открыть файл <code>C:\Programs\Qt\build-x32\qtbase\src\corelib\global\qconfig.cpp</code>, который создался конфигуратором, найти там строчку вида:
 <source lang="cpp">static const char qt_configure_prefix_path_str       [512 + 12] = "qt_prfxpath=c:/Programs/Qt/5.6.3-x32";</source>
 и заменить там весь путь на точку, чтобы получилось следующее:
 <source lang="cpp">static const char qt_configure_prefix_path_str       [512 + 12] = "qt_prfxpath=.";</source>
@@ -196,13 +194,16 @@ Plugins=.</source>
 </ol>
 <br/>
 Теперь открываем новую консоль и аналогичным образом компилируем и устанавливаем 64-битную версию, только в именах каталогов необходимо заменить «x32» на «x64», а команды создания окружения будут выглядеть так:
-<source lang="dos">cd /d C:\Programs\Qt\build-x64
+<source lang="dos">
+md C:\Programs\Qt\build-x64
+cd /d C:\Programs\Qt\build-x64
 SET QTVER=5.6.3
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
 SET QTDIR=C:\Programs\Qt\%QTVER%-x64
 SET PATH=%QTDIR%\bin;%PATH%
-SET QMAKESPEC=win32-msvc2010</source>
+SET QMAKESPEC=win32-msvc2010
+</source>
 <br/>
 После завершения установки каталоги <code>build-x32</code>, <code>build-x64</code> и <code>5.6.3-src</code> можно удалять.<br/>
 <br/>
@@ -226,27 +227,31 @@ SET QMAKESPEC=win32-msvc2010</source>
 <ol>
 <li>Распаковываем архив OpenSSL два раза в каталог <code>C:\Programs\OpenSSL\</code>, переименовывая полученный подкаталог из <code>openssl-1.1.1a</code>, соответственно, в <code>openssl-1.1.1a-x32</code> и <code>openssl-1.1.1a-x64</code>.</li>
 <li>Открываем консоль, собираем и устанавливаем 32-битную версию:
-<source lang="dos">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+<source lang="dos">
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
 COLOR 07
 set PATH=%PATH%;C:\Programs\nasm
 cd /d C:\Programs\OpenSSL\openssl-1.1.1a-x32\
 perl Configure VC-WIN32 no-shared --prefix=C:\Programs\OpenSSL\x32 --openssldir=C:\Programs\OpenSSL\x32\ssl
 nmake
 nmake test
-nmake install</source>
+nmake install
+</source>
 Конфигуратор может выдать страшное сообщение, что, дескать, не может найти компилятор. Не обращайте внимания, это он слегка не в себе.<br/>
 Если вы не хотите использовать NASM, исключите отсюда модификацию переменной <code>PATH</code> и добавьте к вызову <code>Configure</code> параметр <code>no-asm</code>.
 </li>
 <li>
 Открываем новую консоль, собираем и устанавливаем 64-битную версию:
-<source lang="dos">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+<source lang="dos">
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
 set PATH=%PATH%;C:\Programs\nasm
 cd /d C:\Programs\OpenSSL\openssl-1.1.1a-x64\
 perl Configure VC-WIN64A no-shared --prefix=C:\Programs\OpenSSL\x64 --openssldir=C:\Programs\OpenSSL\x64\ssl
 nmake
 nmake test
-nmake install</source>
+nmake install
+</source>
 Отказ от NASM делается аналогично 32-битной версии.
 </li>
 <li>Каталоги <code>C:\Programs\OpenSSL\openssl-1.1.1a-x32</code> и <code>openssl-1.1.1a-x64</code> можно удалять.</li>
@@ -257,7 +262,8 @@ nmake install</source>
 <li>Распаковываем архив cURL в каталог <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.63.0</code> в <code>curl-7.63.0-x32</code>.</li>
 <li>
 Открываем в редакторе файл <code>C:\Programs\curl\curl-7.63.0-x32\winbuild\MakefileBuild.vc</code>, находим там в районе строк 61–69 условный блок вида:
-<source>!IF "$(VC)"=="6"
+<source>
+!IF "$(VC)"=="6"
 CC_NODEBUG  = $(CC) /O2 /DNDEBUG
 CC_DEBUG    = $(CC) /Od /Gm /Zi /D_DEBUG /GZ
 CFLAGS      = /I. /I../lib /I../include /nologo /W4 /wd4127 /GX /DWIN32 /YX /FD /c /DBUILDING_LIBCURL
@@ -265,7 +271,8 @@ CFLAGS      = /I. /I../lib /I../include /nologo /W4 /wd4127 /GX /DWIN32 /YX /FD 
 CC_NODEBUG  = $(CC) /O2 /DNDEBUG
 CC_DEBUG    = $(CC) /Od /D_DEBUG /RTC1 /Z7 /LDd
 CFLAGS      = /I. /I ../lib /I../include /nologo /W4 /wd4127 /EHsc /DWIN32 /FD /c /DBUILDING_LIBCURL
-!ENDIF</source>
+!ENDIF
+</source>
 и добавляем после него строчку:
 <source>CFLAGS      = $(CFLAGS) /DCURL_DISABLE_LDAP</source>
 Если этого не сделать, то при сборке VB полезут ошибки линковки.
@@ -273,40 +280,44 @@ CFLAGS      = /I. /I ../lib /I../include /nologo /W4 /wd4127 /EHsc /DWIN32 /FD /
 <li>
 Открываем файл <code>C:\Programs\curl\curl-7.63.0-x32\winbuild\gen_resp_file.bat</code>, после первой строчки в нём (<code>@echo OFF</code>) вставляем команду:
 <source>cd .</source>
-Это фиктивная команда, которая ничего не делает, и задача её лишь в том, чтобы сбросить код ERRORLEVEL. В противном случае может возникнуть ситуация, когда этот код оказывается ненулевым ещё до запуска батника, а сам батник не выполняет ни одной команды, меняющей код возврата. В результате <code>nmake</code> считает, что батник вернул ошибку, и прерывает сборку.
+Это фиктивная команда, которая ничего не делает, и задача её лишь в том, чтобы сбросить код <code>ERRORLEVEL</code>. В противном случае может возникнуть ситуация, когда этот код оказывается ненулевым ещё до запуска батника, а сам батник не выполняет ни одной команды, меняющей код возврата. В результате <code>nmake</code> считает, что батник вернул ошибку, и прерывает сборку.
 </li>
 <li>Делаем копию каталога <code>curl-7.63.0-x32</code> под именем <code>curl-7.63.0-x64</code>.</li>
 <li>Открываем консоль, собираем 32-битную версию и копируем необходимые файлы в целевой каталог:
-<source lang="dos">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
+<source lang="dos">
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
 COLOR 07
 cd /d C:\Programs\curl\curl-7.63.0-x32\winbuild
 md C:\Programs\curl\x32
 nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x86 SSL_PATH=C:\Programs\OpenSSL\x32 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
 copy ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\lib\libcurl_a.lib ..\..\x32\libcurl.lib
-xcopy /E ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\include\curl ..\..\x32\include\curl\</source>
+xcopy /E ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\include\curl ..\..\x32\include\curl\
+</source>
 </li>
 <li>
 Собираем 64-битную версию, открыв новую консоль и выполнив команды:
-<source lang="dos">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+<source lang="dos">
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
 cd /d C:\Programs\curl\curl-7.63.0-x64\winbuild
 md C:\Programs\curl\x64
 nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x64 SSL_PATH=C:\Programs\OpenSSL\x64 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
 copy ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\lib\libcurl_a.lib ..\..\x64\libcurl.lib
 xcopy /E ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\include\curl ..\..\x64\include\curl\
-copy ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\bin\curl.exe ..\..\x64\curl.exe</source>
+copy ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\bin\curl.exe ..\..\x64\curl.exe
+</source>
 Обратите внимание, что, в отличие от 32-битной версии, здесь мы копируем ещё и <code>curl.exe</code>, он нам потом понадобится для скачивания образа гостевых дополнений.
 </li>
 <li>Каталоги <code>C:\Programs\curl\curl-7.63.0-x32</code> и <code>curl-7.63.0-x64</code> можно удалять.</li>
 </ol>
 <br/>
-
 <h5>• libvpx</h5>
 <ol>
 <li>Распаковываем архив libvpx в каталог <code>C:\Programs\libvpx-build\</code>.</li>
 <li>
 Запускаем Cygwin, в нём будем выполнять конфигурирование, сборку и установку библиотеки. В качестве целевой платформы будет указана Visual Studio 2010. При этом сборочная система попытается автоматически запустить сборку, но будет делать это с использованием <code>msbuild.exe</code>, который мне не удалось заставить работать корректно в имеющемся окружении. Вместо этого оказалось проще запустить отдельным шагом сборку самой Студией, благо она позволяет работать из командной строки. Впрочем, можно этот шаг выполнить и при помощи графической среды, если кому-то она привычнее, но в этом случае вам придётся к переменной <code>PATH</code> добавить путь <code>C:\Programs\cygwin64\bin</code> (или как-то иначе задать его в проекте), потому что там располагается ассемблер <code>yasm.exe</code>, необходимый для сборки. Итак, в терминале Cygwin выполняем следующие команды:
-<source lang="bash">mkdir -p /cygdrive/c/Programs/libvpx-build/build32
+<source lang="bash">
+mkdir -p /cygdrive/c/Programs/libvpx-build/build32
 cd /cygdrive/c/Programs/libvpx-build/build32
 ../libvpx-1.7.0/configure --target=x86-win32-vs10 --disable-install-bins --disable-examples --disable-tools --disable-docs --prefix=../../libvpx
 make
@@ -324,7 +335,6 @@ make install
 <li>Закрываем терминал Cygwin, больше он нам не понадобится. Каталог <code>C:\Programs\libvpx-build</code> можно удалять.</li>
 </ol>
 <br/>
-
 <h5>• libopus</h5>
 <ol>
 <li>Распаковываем архив opus в каталог <code>C:\Programs\libopus-build\</code>, переходим в подкаталог <code>opus-1.3\win32\VS2015</code>.</li>
@@ -338,7 +348,8 @@ make install
 </li>
 <li>
 Далее находим блок:
-<source lang="xml">  &lt;ItemDefinitionGroup&gt;
+<source lang="xml">
+  &lt;ItemDefinitionGroup&gt;
     &lt;ClCompile&gt;
 </source>
 и добавляем туда тег:
@@ -349,7 +360,8 @@ make install
 </li>
 <li>
 Теперь собираем Release-конфигурацию для обеих архитектур (из оболочки VS или из командной строки) и копируем собранную библиотеку <code>opus.lib</code> и подкаталог <code>include\</code> в целевой каталог установки:
-<source lang="dos">cd /d C:\Programs\libopus-build\opus-1.3\win32\VS2015
+<source lang="dos">
+cd /d C:\Programs\libopus-build\opus-1.3\win32\VS2015
 md C:\Programs\libopus\lib\x64
 md C:\Programs\libopus\lib\Win32
 xcopy /E C:\Programs\libopus-build\opus-1.3\include C:\Programs\libopus\include\
@@ -364,13 +376,12 @@ copy Win32\Release\opus.lib C:\Programs\libopus\lib\Win32\
 <li>Каталог <code>C:\Programs\libopus-build</code> можно удалять.</li>
 </ol>
 <br/>
-
 <h5>• gSOAP</h5>
-Открываем архив, заходим в подкаталог <code>gsoap-2.8\gsoap</code> и распаковываем содержимое этого подкаталога в <code>C:\Programs\gSOAP\</code>. Для корректной сборки с OpenSSL 1.1.x требуется версия 2.8.41 или выше. Для более ранних версий потребуется наложить специальный <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/blob/master/misc/gsoap-openssl110.patch">патч</a> (автор: <a href="https://sourceforge.net/p/gsoap2/patches/166/">Mattias Ellert</a>). Можно это сделать вручную (формат достаточно очевидный: открываем поочерёдно указанные файлы, удаляем строчки, отмеченные минусами, и добавляем отмеченные плюсами; остальные строки помогают определить контекст), а можно взять стандартную утилиту patch, портированную для Windows, и натравить её.<br/>
+Открываем архив, заходим в подкаталог <code>gsoap-2.8\gsoap</code> и распаковываем содержимое этого подкаталога в <code>C:\Programs\gSOAP\</code>. Для корректной сборки с OpenSSL 1.1.x требуется версия 2.8.41 или выше. Для более ранних версий потребуется наложить специальный <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/blob/master/misc/gsoap-openssl110.patch">патч</a> (автор: <a href="https://sourceforge.net/p/gsoap2/patches/166/">Mattias Ellert</a>). Можно это сделать вручную (формат достаточно очевидный: открываем поочерёдно указанные файлы, удаляем строчки, отмеченные минусами, и добавляем отмеченные плюсами; остальные строки помогают определить контекст), а можно взять стандартную утилиту <code>patch</code>, портированную для Windows, и натравить её.<br/>
 <br/>
 <h5>• MiKTeX</h5>
 <ol>
-<li>Распаковываем архив в <code>C:\Programs\MiKTeX\</code></li>
+<li>Распаковываем архив в <code>C:\Programs\MiKTeX\</code>.</li>
 <li>
 Открываем консоль и запускаем установку дополнительных модулей:
 <source lang="dos">"C:\Programs\MiKTeX\miktex\bin\mpm.exe" --verbose --install=koma-script --install=ucs --install=tabulary --install=url --install=fancybox --install=fancyvrb --install=bera --install=charter --install=mptopdf</source>
@@ -385,47 +396,54 @@ copy Win32\Release\opus.lib C:\Programs\libopus\lib\Win32\
 <br/>
 Подготовка к сборке почти завершена, остались несколько шагов. Если вы этого ещё не сделали, нужно скачать архив с исходными кодами VirtualBox нужной версии и распаковать его в удобное место. В качестве рабочего каталога я выбрал <code>C:\Devel\</code>; в него я распаковал архив исходных кодов и переименовал полученный каталог в <code>VirtualBox-src</code>.<br/>
 <br/>
-<h5>• Добавление сертификатов</h5>
-Если у вас нет полноценного сертификата, то рекомендуется создать хотя бы персональный (с ним проще загружать драйверы, чем совсем без подписи). Для этого нужно открыть консоль с повышенными привилегиями и выполнить в ней следующие команды:
-<source lang="dos">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+<h5>• Добавление сертификатов</h5><br/>
+Если у вас нет полноценного сертификата, то рекомендуется создать хотя бы персональный (с ним проще загружать драйверы, чем совсем без подписи). Для этого нужно открыть консоль с повышенными привилегиями и выполнить в ней следующие команды, которые создадут и добавят в личное хранилище два сертификата (SHA-1 и SHA-256):
+<source lang="dos">
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
 makecert.exe -a sha1 -r -pe -ss my -n "CN=Roga and Kopyta Ltd" C:\Devel\testcert_1.cer
 makecert.exe -a sha256 -r -pe -ss my -n "CN=Roga and Kopyta Ltd" C:\Devel\testcert_256.cer
 certmgr.exe -add C:\Devel\testcert_1.cer -s -r localMachine root
-certmgr.exe -add C:\Devel\testcert_256.cer -s -r localMachine root</source>
-Имя для сертификатов («Roga and Kopyta Ltd») и путь к файлам можно выбирать по своему усмотрению. Поскольку имена одинаковые, для различения сертификатов нужно будет использовать цифровой отпечаток. Откройте консоль управления сертификатами (запустите <code>certmgr.msc</code>), откройте там список персональных сертификатов. Дважды щёлкните на первом из сертификатов «Roga and Kopyta Ltd», в открывшемся диалоге перейдите на вкладку Details. В поле Signature algorithm будет указан алгоритм подписи: sha256RSA или sha1RSA. Далее, в самом конце списка будет поле Thumbprint со значением в виде последовательности шестнадцатеричных чисел. Скопируйте это значение куда-нибудь. То же самое повторите для второго из сертификатов. Не забудьте отметить, какой из них был sha256, а какой — sha1. (Более простым решением было бы задать разные имена сертификатам, но две разноимённых подписи будут смотреться неэстетично.)<br/>
+certmgr.exe -add C:\Devel\testcert_256.cer -s -r localMachine root
+</source>
+Имя для сертификатов («Roga and Kopyta Ltd») и путь к файлам можно выбирать по своему усмотрению. Также нам потребуются цифровые отпечатки сгенерированных сертификатов. Откройте консоль управления сертификатами (запустите <code>certmgr.msc</code>), откройте там список персональных сертификатов. Дважды щёлкните на первом из сертификатов «Roga and Kopyta Ltd», в открывшемся диалоге перейдите на вкладку <i>Состав</i>. В поле «Алгоритм подписи» будет указано sha256RSA или sha1RSA. Далее, в самом конце списка будет поле «Отпечаток» со значением в виде последовательности шестнадцатеричных чисел. Скопируйте это значение куда-нибудь. То же самое повторите для второго из сертификатов. Не забудьте отметить, какой из них был SHA-256, а какой — SHA-1.<br/>
 <br/>
-<h5>• Сборка xmllint</h5>
-На одном из этапов потребуется также программа xmllint. Я не указывал её в списке требований, потому что необходимые исходники уже присутствуют в архиве VB. Сборочные правила не рассчитаны на автоматическую сборку этой утилиты, поэтому её придётся собрать отдельно. В качестве целевого каталога я выбрал <code>C:\Programs\xmllint</code>.
+<h5>• Сборка xmllint</h5><br/>
+На одном из этапов потребуется также программа <code>xmllint</code>. Я не указывал её в списке требований, потому что необходимые исходники уже присутствуют в архиве VB. Сборочные правила не рассчитаны на автоматическую сборку этой утилиты, поэтому придётся сделать это самостоятельно. В качестве целевого каталога я выбрал <code>C:\Programs\xmllint</code>.
 <ol>
-<li>Копируем содержимое каталога <code>C:\Devel\VirtualBox-src\src\libs\libxml2-2.9.4</code> в <code>C:\Programs\libxml2-2.9.4\</code> (это необходимо, чтобы промежуточные объектные файлы не мешали сборке самого VB).</li>
+<li>Копируем каталог <code>C:\Devel\VirtualBox-src\src\libs\libxml2-2.9.4</code> в <code>C:\Programs\</code> (это необходимо, чтобы промежуточные объектные файлы не мешали сборке самого VB).</li>
 <li>Открываем консоль и выполняем команды:
-<source lang="dos">"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
+<source lang="dos">
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
 cd /d C:\Programs\libxml2-2.9.4\win32
 cscript.exe configure.js cruntime=/MT prefix=C:\Programs\xmllint iconv=no
 nmake /f Makefile.msvc
-nmake /f Makefile.msvc install</source>
+nmake /f Makefile.msvc install
+</source>
 </li>
 <li>Удаляем каталог <code>C:\Programs\libxml2-2.9.4</code>.</li>
 </ol>
 <br/>
-<h5>• Различные правки VB</h5>
-Прежде чем приступать к сборке, нам ещё потребуется внести кое-какие правки в исходные коды самого VirtualBox. Поскольку их набралось довольно много, я решил собрать их в отдельный патч, который можно просто целиком наложить на дерево исходных кодов; взять файл можно <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/blob/master/misc/vbox_build.patch">тут</a>. Ниже привожу подробности, какие именно правки были внесены и зачем. Итак, переходим в каталог <code>C:\Devel\VirtualBox-src</code> и начинаем:
+<h5>• Различные правки VB</h5><br/>
+Прежде чем приступать к сборке, нам ещё потребуется внести кое-какие правки в исходные коды самого VirtualBox. Полный набор всех изменений выложен мной в виде отдельного патча, который можно просто наложить целиком на дерево VB (вручную или используя утилиту <code>patch</code>, которую потребуется скачать отдельно):<br/><br/>
+» <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/blob/master/misc/vbox_build.patch"><b>vbox_build.patch</b></a><br/><br/>
+Если всё наложилось корректно, то можно переходить к <a href="#final-touches-localconfig">следующему пункту</a>. Если же что-то не состыковалось и требуется разобраться с конкретным изменением, или просто вас интересуют подробности, какие именно правки были внесены и зачем, читайте далее. Имейте в виду, что описания здесь могут идти в не в том порядке, как в патче. Пути к файлам указаны относительно каталога с исходниками VB, <code>C:\Devel\VirtualBox-src</code>.
 <ol>
 <li>
-Открываем файл <code>configure.vbs</code>, проделываем с ним вот такие издевательства:
+Файл <code>configure.vbs</code>:
 <ul>
 <li>
-Находим код:
+Строка кода:
 <source lang="vbscript">if Shell(DosSlashes(strPathVC &amp; "/bin/cl.exe"), True) &lt;&gt; 0 then</source>
-и заменяем на следующий:
+заменяется на:
 <source lang="vbscript">if Shell(DosSlashes(strPathVC &amp; "/bin/cl.exe") &amp; " /?", True) &lt;&gt; 0 then</source>
-Этот кусок отвечает за поиск и проверку компилятора, но не учитывает, что вызов <code>cl.exe</code> без аргументов возвращает ошибку (что трактуется как неподходящий компилятор). Добавление параметра «<code>/?</code>» запрашивает вывод справки, и код возврата перестаёт быть ошибочным.
+Этот код отвечает за поиск и проверку компилятора, но не учитывает, что вызов <code>cl.exe</code> без аргументов возвращает ошибку (что трактуется как неподходящий компилятор). Добавление параметра «<code>/?</code>» запрашивает вывод справки, и код возврата перестаёт быть ошибочным.
 </li>
 <li>
-Теперь переходим к функции <code>CheckForMinGW32Sub</code>. Здесь проверяется корректность 32-битного MinGW с расчётом на версию 3.3.3. У нас используется версия 4.5.4, где структура файлов/каталогов довольно сильно отличается, поэтому всю функцию заменяем на следующий код (я его просто перенёс из <code>CheckForMinGWw64Sub</code>, немного адаптировав):
-<source lang="vbscript">function CheckForMinGW32Sub(strPathMingW32, strPathW32API)
+Теперь переходим к функции <code>CheckForMinGW32Sub</code>. Здесь проверяется корректность 32-битного MinGW с расчётом на версию 3.3.3. У нас используется версия 4.5.4, где структура файлов/каталогов довольно сильно отличается, поэтому вся функция заменяется на следующий код (я его просто перенёс из <code>CheckForMinGWw64Sub</code>, немного адаптировав):
+<source lang="vbscript">
+function CheckForMinGW32Sub(strPathMingW32, strPathW32API)
    g_strSubOutput = ""
    if strPathW32API = "" then strPathW32API = strPathMingW32
    LogPrint "trying: strPathMingW32="  &amp;strPathMingW32 &amp; " strPathW32API=" &amp; strPathW32API
@@ -475,25 +493,31 @@ nmake /f Makefile.msvc install</source>
          LogPrint "Failed to run gcc.exe!"
       end if
    end if
-end function</source>
+end function
+</source>
 </li>
 <li>
-Идём далее, находим функцию <code>CheckForCurlSub</code>, в ней — вот такой код:
-<source lang="vbscript">   if   LogFileExists(strPathCurl, "include/curl/curl.h") _
-    And LogFindFile(strPathCurl, "libcurl.dll") <> "" _
-    And LogFindFile(strPathCurl, "libcurl.lib") <> "" _</source>
+Следующая функция — <code>CheckForCurlSub</code>, в ней — вот такой код:
+<source lang="vbscript">
+   if   LogFileExists(strPathCurl, "include/curl/curl.h") _
+    And LogFindFile(strPathCurl, "libcurl.dll") &lt;&gt; "" _
+    And LogFindFile(strPathCurl, "libcurl.lib") &lt;&gt; "" _
+</source>
 Этот код выполняет поиск и проверку пути к libcurl, но он рассчитан только на использование динамически линкуемой версии библиотеки и, если не находит соответствующий DLL-файл, ругается некультурными словами. Поскольку мы собираем со статической версией, эту проверку надо поправить, удалив строчку с <code>libcurl.dll</code>, чтобы получилось:
-<source lang="vbscript">   if   LogFileExists(strPathCurl, "include/curl/curl.h") _
-    And LogFindFile(strPathCurl, "libcurl.lib") <> "" _</source>
+<source lang="vbscript">
+   if   LogFileExists(strPathCurl, "include/curl/curl.h") _
+    And LogFindFile(strPathCurl, "libcurl.lib") &lt;&gt; "" _
+</source>
 </li>
 <li>
-Теперь перейдём к функции <code>CheckForPython</code>, там есть генерация переменной <code>VBOX_BLD_PYTHON</code>:
-<source lang="vbscript">      CfgPrint "VBOX_BLD_PYTHON       := " & strPathPython & "\python.exe"</source>
-Здесь нужно обратный слэш перед python.exe заменить на прямой: <code>"/python.exe"</code> (иначе некоторые проверки падают; вроде бы, для сборки это некритично, но неаккуратно).
+Теперь переходим к функции <code>CheckForPython</code>, там есть генерация переменной <code>VBOX_BLD_PYTHON</code>:
+<source lang="vbscript">      CfgPrint "VBOX_BLD_PYTHON       := " &amp; strPathPython &amp; "\python.exe"</source>
+Здесь нужно обратный слэш перед <code>python.exe</code> заменить на прямой: <code>"/python.exe"</code> (иначе некоторые проверки падают; вроде бы, для сборки это некритично, но выглядит неаккуратно).
 </li>
 <li>
-В Windows-версии конфигуратор не поддерживает libvpx и libopus, придётся добавить их поддержку самостоятельно. Можно, конечно, просто прохардкодить пути установки библиотек, но я предпочёл, чтобы конфигуратор проверял корректность установки и принимал путь через аргументы командной строки, как уже сделано для остальных компонентов. Поэтому для начала добавим две проверочные функции где-нибудь между определениями других функций; я сделал это перед <code>CheckForQt</code>, код выглядит следующим образом:
-<source lang="vbscript">''
+В Windows-версии конфигуратор не поддерживает libvpx и libopus, я добавляю их поддержку самостоятельно. Можно было, конечно, просто прохардкодить пути установки библиотек, но я предпочёл, чтобы конфигуратор проверял корректность установки и принимал путь через аргументы командной строки, как уже сделано для остальных компонентов. Поэтому я реализовал две проверочные функции, выглядящие следующим образом:
+<source lang="vbscript">
+''
 ' Checks for libvpx
 sub CheckForVpx(strOptVpx)
    dim strPathVpx, str
@@ -565,76 +589,92 @@ sub CheckForOpus(strOptOpus)
    PrintResult strOpus, strPathOpus
 end sub
 </source>
-Затем находим функцию <code>usage</code>, где печатается справка по аргументам, и в конец добавляем упоминание пары новых аргументов:
-<source lang="vbscript">   Print "  --with-libvpx=PATH    "
+Далее в функции <code>usage</code>, где печатается справка по аргументам, приписывается вывод двух свежедобавленных:
+<source lang="vbscript">
+   Print "  --with-libvpx=PATH    "
    Print "  --with-libopus=PATH   "
 </source>
-Теперь в начале функции <code>Main</code> к определению кучи переменных, хранящих разные пути, добавляем свои две (например, после строчки с определением <code>strOptMkisofs</code>):
-<source lang="vbscript">   strOptVpx = ""
+В начале функции <code>Main</code> находятся переменные, хранящие всевозможные пути к программам и библиотекам — там создаются две новых переменных:
+<source lang="vbscript">
+   strOptVpx = ""
    strOptOpus = ""
 </source>
-Ещё ниже идёт блок <code>select-case</code> с обработкой параметров, добавляем туда свои, например, после опции <code>--with-mkisofs</code>:
-<source lang="vbscript">         case "--with-libvpx"
+Ниже идёт блок <code>select-case</code> с обработкой параметров командной строки, здесь добавляется код для двух новых аргументов:
+<source lang="vbscript">
+         case "--with-libvpx"
             strOptVpx = strPath
          case "--with-libopus"
             strOptOpus = strPath
 </source>
-И наконец, практически в конце файла находим место, где вызываются все функции, и после них, перед строкой <code>if g_blnInternalMode then</code> добавляем вызовы нашего кода:
-<source lang="vbscript">   CheckForVpx strOptVpx
+И наконец, практически в конце файла идёт цепочка вызовов всех проверочных функций, отвечающих за разные компоненты, и туда вписываются вызовы наших новых обработчиков:
+<source lang="vbscript">
+   CheckForVpx strOptVpx
    CheckForOpus strOptOpus
 </source>
 </li>
 </ul>
 </li>
 <li>
-Теперь переходим к файлу <code>src\VBox\Runtime\Makefile.kmk</code>, находим там определения переменных <code>VBoxRT_LIBS.win</code> и <code>VBoxRT-x86_LIBS.win</code> и добавляем к ним <code>crypt32.lib</code> и <code>bcrypt.lib</code>:
-<source>VBoxRT_LIBS.win                = \
+Следующий файл — <code>src\VBox\Runtime\Makefile.kmk</code>. Находим там определения переменных <code>VBoxRT_LIBS.win</code> и <code>VBoxRT-x86_LIBS.win</code> и добавляем к ним <code>crypt32.lib</code> и <code>bcrypt.lib</code>. А именно, код:
+<source>
+VBoxRT_LIBS.win                = \
 	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/vccomsup.lib \
 	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/wbemuuid.lib \
 	$(PATH_TOOL_$(VBOX_VCC_TOOL)_LIB)/delayimp.lib
 </source>
 заменяется на:
-<source>VBoxRT_LIBS.win                = \
+<source>
+VBoxRT_LIBS.win                = \
 	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/vccomsup.lib \
 	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/wbemuuid.lib \
 	$(PATH_TOOL_$(VBOX_VCC_TOOL)_LIB)/delayimp.lib \
 	$(PATH_SDK_$(VBOX_WINPSDK)_LIB)/crypt32.lib \
-	$(PATH_SDK_$(VBOX_WINPSDK)_LIB)/bcrypt.lib</source>
+	$(PATH_SDK_$(VBOX_WINPSDK)_LIB)/bcrypt.lib
+</source>
 (не пропустите обратный слэш после <code>delayimp.lib</code>!); и аналогично:
-<source>VBoxRT-x86_LIBS.win                = \
+<source>
+VBoxRT-x86_LIBS.win                = \
 	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/vccomsup.lib \
 	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/wbemuuid.lib \
-	$(PATH_TOOL_$(VBOX_VCC_TOOL_STEM)X86_LIB)/delayimp.lib</source>
+	$(PATH_TOOL_$(VBOX_VCC_TOOL_STEM)X86_LIB)/delayimp.lib
+</source>
 заменяется на:
-<source>VBoxRT-x86_LIBS.win                = \
+<source>
+VBoxRT-x86_LIBS.win                = \
 	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/vccomsup.lib \
 	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/wbemuuid.lib \
 	$(PATH_TOOL_$(VBOX_VCC_TOOL_STEM)X86_LIB)/delayimp.lib \
 	$(PATH_SDK_$(VBOX_WINPSDK)_LIB.x86)/crypt32.lib \
-	$(PATH_SDK_$(VBOX_WINPSDK)_LIB.x86)/bcrypt.lib</source>
-Это требуется для успешной линковки библиотеки <code>VBoxRT.dll</code>. Я не до конца разобрался в этой особенности: в дистрибутиве Oracle нет зависимости от библиотеки <code>crypt32.dll</code>, она там загружается динамически во время выполнения, поэтому, теоретически, LIB-файл добавлять не нужно. Однако если этого не сделать, линковщик не может найти некоторые функции и отказывается собирать библиотеку. Пришлось добавить. А зависимость от <code>bcrypt.dll</code> появилась при переходе на OpenSSL 1.1.1.
+	$(PATH_SDK_$(VBOX_WINPSDK)_LIB.x86)/bcrypt.lib
+</source>
+Это требуется для успешной линковки библиотеки <code>VBoxRT.dll</code>. Я не до конца разобрался в этой особенности: в дистрибутиве Oracle нет зависимости от библиотеки <code>crypt32.dll</code>, она там загружается динамически во время выполнения, поэтому, теоретически, LIB-файл добавлять не нужно. Однако если этого не сделать, линковщик не может найти некоторые функции и отказывается собирать библиотеку. Предполагаю, что это как-то связано с опциями сборки OpenSSL, но детально не разбирался, проще было добавить эту библиотеку в список. А зависимость от <code>bcrypt.dll</code> появилась при переходе на OpenSSL 1.1.1.
 </li>
 <li>
 Если вы используете gSOAP версии 2.8.45 или выше, то требуется подправить файл <code>src\VBox\Runtime\r3\win\VBoxRT-openssl-1.1plus.def</code>, добавив куда-нибудь в общий список строчку:
 <source>X509_STORE_set_flags</source>
-(я добавляю после строки <code>X509_VERIFY_PARAM_set_flags</code>). Этот список определяет набор функций, экспортируемых библиотекой <code>VBoxRT.dll</code>. В gSOAP 2.8.45 добавили вызов функции <code>X509_STORE_set_flags()</code>, линковщик не может найти её в <code>VBoxRT</code>, подключает OpenSSL и тут же начинает материться из-за того, что эта внешняя OpenSSL начинает драться со своей копией, внедрённой внутрь <code>VBoxRT</code>. Добавление экспорта устраняет эту проблему.
+Этот список определяет набор функций, экспортируемых библиотекой <code>VBoxRT.dll</code>. В gSOAP 2.8.45 добавили вызов функции <code>X509_STORE_set_flags()</code>, линковщик не может найти её в <code>VBoxRT</code>, подключает OpenSSL и тут же начинает материться из-за того, что эта внешняя OpenSSL начинает драться со своей копией, внедрённой внутрь <code>VBoxRT</code>. Добавление экспорта устраняет эту проблему.
 </li>
 <li>
-Как я упомянул в начале статьи, сборку гостевых дополнений я пропускаю, но их ISO-образ в составе дистрибутива должен присутствовать. Сборочные файлы VB на такую конструкцию в целом рассчитаны, но они ожидают, что сам ISO-файл магическим образом появится в нужном месте в нужное время. Чтобы обеспечить эту магию, открываем файл <code>src\VBox\Makefile.kmk</code>, находим там блок кода вида:
-<source>  ifdef VBOX_WITH_ADDITIONS
+Как я упомянул в начале статьи, сборку гостевых дополнений я пропускаю, но их ISO-образ в составе дистрибутива должен присутствовать. Сборочные файлы VB на такую конструкцию в целом рассчитаны, но они ожидают, что сам ISO-файл магическим образом появится в нужном месте в нужное время. У меня эта магия реализована в файле <code>src\VBox\Makefile.kmk</code>. Находим там блок кода вида:
+<source>
+  ifdef VBOX_WITH_ADDITIONS
    include $(PATH_SUB_CURRENT)/Additions/Makefile.kmk
-  endif</source>
+  endif
+</source>
 и после него добавляем определение сборочного правила для загрузки образа:
-<source> ifndef VBOX_WITHOUT_ADDITIONS_ISO
+<source>
+ ifndef VBOX_WITHOUT_ADDITIONS_ISO
   $(VBOX_PATH_ADDITIONS_ISO)/VBoxGuestAdditions.iso:
 	$(QUIET)$(MKDIR) -p $(@D)
 	$(VBOX_RETRY) $(TOOL_CURL_FETCH) http://download.virtualbox.org/virtualbox/$(VBOX_VERSION_STRING_RAW)/VBoxGuestAdditions_$(VBOX_VERSION_STRING_RAW).iso -o $@
- endif</source>
+ endif
+</source>
 Если вы правите файлы самостоятельно, а не готовым патчем, учтите, что строки-команды должны начинаться с символа табуляции.
 </li>
 <li>
-Сборка документации была существенно переделана в версии 6.0, и если раньше всё собиралось без каких-либо доработок, то теперь приходится лезть и в эту подсистему. Я не знаю, в каких условиях документация собирается в Oracle, но у меня различные компоненты то и дело теряли слэши в путях или, наоборот, получали лишние, и в итоге не могли найти нужные файлы из-за сбившихся соответствий в файлах каталогов. Методом научного тыка мне удалось в итоге подобрать комбинацию, с которой документация собралась без ошибок. Сначала нужно в файле <code>doc\manual\Makefile.kmk</code> найти код:
-<source>define def_vbox_refentry_to_user_sect1
+Сборка документации была существенно переделана в версии 6.0, и если раньше всё собиралось без каких-либо доработок, то теперь приходится лезть и в эту подсистему. Я не знаю, в каких условиях документация собирается в Oracle (возможно, они используют *NIX-подобную систему), но у меня различные компоненты то и дело теряли слэши в путях или, наоборот, получали лишние, и в итоге не могли найти нужные файлы из-за сбившихся соответствий в каталожных файлах. Методом научного тыка мне удалось в итоге подобрать комбинацию, с которой документация собралась без ошибок. В первую очередь была исправлена ошибка отсутствия одного из промежуточных целевых каталогов, из-за чего некоторые файлы не могли быть созданы. Это делается в файле <code>doc\manual\Makefile.kmk</code> в блоке кода:
+<source>
+define def_vbox_refentry_to_user_sect1
 $$(VBOX_PATH_MANUAL_OUTBASE)/$(1)/user_$(2): $(3) \
 		$$(VBOX_PATH_MANUAL_SRC)/docbook-refentry-to-manual-sect1.xsl \
 		$$(VBOX_XML_CATALOG) $$(VBOX_XML_CATALOG_DOCBOOK) $$(VBOX_XML_CATALOG_MANUAL) \
@@ -642,17 +682,21 @@ $$(VBOX_PATH_MANUAL_OUTBASE)/$(1)/user_$(2): $(3) \
 	$$(call MSG_TOOL,xsltproc $$(notdir $$(filter %.xsl,$$^)),,$$(filter %.xml,$$^),$$@)
 	$$(QUIET)$$(RM) -f "$$@"
 	$$(QUIET)$$(call VBOX_XSLTPROC_WITH_CAT) --output $$@ $$(VBOX_PATH_MANUAL_SRC)/docbook-refentry-to-manual-sect1.xsl $$&lt;
-endef</source>
-и после строчки с <code>$$(RM)</code> добавить команду создания целевого каталога:
+endef
+</source>
+Здесь после строчки с <code>$$(RM)</code> я добавил команду создания целевого каталога:
 <source>	$$(QUIET)$$(MKDIR) -p "$$(@D)"</source>
-(не забудьте, что тут табуляция!) Если этого не сделать, часть генерируемых файлов не может быть создана из-за отсутствия целевого пути.<br/><br/>
-После этого открываем файл <code>doc\manual\Config.kmk</code>, находим следующую строчку:
+<br/>
+Битва со слэшами происходит в файле <code>doc\manual\Config.kmk</code>. Нормального решения проблемы мне найти не удалось, поэтому в качестве обходного пути я просто добавил инструкции для обработки «кривых» путей. Сначала после строки:
 <source>  VBOX_FILE_URL_MAYBE_SLASH = $(if $(eq $(KBUILD_HOST),win),/,)</source>
-и после неё добавляем две новых переменных, которые дублируют существующие переменные, но превращают одиночный слэш после имени диска в тройной:
-<source> VBOX_PATH_MANUAL_SRC_SLASHED = $(subst :/,:///,$(VBOX_PATH_MANUAL_SRC))
- VBOX_PATH_MANUAL_OUTBASE_SLASHED = $(subst :/,:///,$(VBOX_PATH_MANUAL_OUTBASE))</source>
-Чуть ниже находим правило для создания файла каталога:
-<source> $(VBOX_XML_CATALOG): $(MAKEFILE_CURRENT) | $$(dir $$@)
+я создаю две новых переменных, которые дублируют существующие переменные, но превращают одиночный слэш после имени диска в тройной:
+<source>
+ VBOX_PATH_MANUAL_SRC_SLASHED = $(subst :/,:///,$(VBOX_PATH_MANUAL_SRC))
+ VBOX_PATH_MANUAL_OUTBASE_SLASHED = $(subst :/,:///,$(VBOX_PATH_MANUAL_OUTBASE))
+</source>
+Чуть ниже находится правило для создания каталожного файла:
+<source>
+ $(VBOX_XML_CATALOG): $(MAKEFILE_CURRENT) | $$(dir $$@)
 	$(call MSG_L1,Creating catalog $@)
 	$(QUIET)$(APPEND) -tn "$@" \
 		'&lt;?xml version="1.0"?&gt;' \
@@ -666,9 +710,11 @@ endef</source>
 		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_SRC)"                    catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
 		'  &lt;delegateURI uriStartString="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
 		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE)"                catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
-		'&lt;/catalog&gt;'</source>
-Здесь нужно все строки, которые используют переменные <code>VBOX_PATH_MANUAL_SRC</code> и <code>VBOX_PATH_MANUAL_OUTBASE</code>, продублировать с заменой этих переменных на определённые выше (ту, что имеет префикс <code>file://</code>, можно пропустить). В итоге должно получиться:
-<source> $(VBOX_XML_CATALOG): $(MAKEFILE_CURRENT) | $$(dir $$@)
+		'&lt;/catalog&gt;'
+</source>
+Для каждой строки, использующей переменные <code>VBOX_PATH_MANUAL_SRC</code> и <code>VBOX_PATH_MANUAL_OUTBASE</code>, я добавил такую же, но с заменой этих переменных на определённые выше (строчку с префиксом <code>file://</code> можно пропустить). В итоге получилось:
+<source>
+ $(VBOX_XML_CATALOG): $(MAKEFILE_CURRENT) | $$(dir $$@)
 	$(call MSG_L1,Creating catalog $@)
 	$(QUIET)$(APPEND) -tn "$@" \
 		'&lt;?xml version="1.0"?&gt;' \
@@ -685,45 +731,71 @@ endef</source>
 		'  &lt;delegateURI uriStartString="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
 		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE)"                catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
 		'  &lt;delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE_SLASHED)"        catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/&gt;' \
-		'&lt;/catalog&gt;'</source>
-Ещё ниже находим правило для генерации вспомогательного каталога, начинающееся со строки:
+		'&lt;/catalog&gt;'
+</source>
+Ещё ниже присутствует правило для генерации вспомогательного каталожного файла, начинающееся со строки:
 <source> $(VBOX_XML_CATALOG_MANUAL): $(MAKEFILE_CURRENT) | $$(dir $$@)</source>
-и аналогичным образом модифицируем строки там. Кроме того, у нескольких первых строк, ссылающихся на файлы в подкаталоге <code>common/</code>, нужно поменять целевой адрес (атрибут <code>uri</code>), убрав из него префикс <code>file://$(VBOX_FILE_URL_MAYBE_SLASH)</code>.
+В нём выполняется аналогичная операция. Кроме этого, в начале файла идут несколько строчек, ссылающихся на файлы в подкаталоге <code>common/</code>:
+<source>
+		'  &lt;system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-accessibility-en.xml"            uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/&gt;' \
+		'  &lt;system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-support-en.xml"                  uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/&gt;' \
+</source>
+С ними наблюдается обратная проблема — исчезновение слэшей после протокола. Это я смог обойти, поменяв целевой адрес (атрибут <code>uri</code>) на обычный путь вместо file-протокола, так что, с учётом предыдущей правки, эти строки превратились в следующий набор соответствий:
+<source>
+		'  &lt;system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-accessibility-en.xml"            uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/&gt;' \
+		'  &lt;system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/common/oracle-accessibility-en.xml"          uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/&gt;' \
+		'  &lt;system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-support-en.xml"                  uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/&gt;' \
+		'  &lt;system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/common/oracle-support-en.xml"                uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/&gt;' \
+</source>
 </li>
 <li>
-Если VB собирается с подписыванием, то для большинства исполняемых файлов выставляется флаг принудительной проверки подписи (опция компоновщика <code>/IntegrityCheck</code>). Если у вас полноценный сертификат, это не проблема. Если нет — VB просто откажется запускаться после установки (даже в тестовом режиме). Я модифицировал файл <code>Config.kmk</code> таким образом, чтобы флаг добавлялся только при использовании полноценного сертификата (в качестве критерия "полноценности" я выбрал указание кросс-сертификата в файле <code>LocalConfig.kmk</code>; см. ниже). Набор исправлений заключается в следующем.
+Если VB собирается с подписыванием, то для большинства исполняемых файлов выставляется флаг принудительной проверки подписи (опция компоновщика <code>/IntegrityCheck</code>). При наличии полноценного сертификата это не проблема. Однако если у вас самоподписанный сертификат, VB просто откажется запускаться после установки (даже в тестовом режиме). Я модифицировал файл <code>Config.kmk</code> таким образом, чтобы флаг добавлялся только при использовании полноценного сертификата (в качестве критерия «полноценности» я выбрал наличие кросс-сертификата в файле <code>LocalConfig.kmk</code>; см. <a href="#final-touches-localconfig">ниже</a>). Набор исправлений заключается в следующем.
 <ul>
-<li>Вставить блок определения переменной <code>VBOX_INTEGRITY_CHECK</code>, которая будет использоваться вместо фиксированной опции. Я добавил этот блок кода перед строкой <code>define VBOX_RE_SIGN_DLL_INTERNAL_FN</code>:
-<source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_CROSS_CERTIFICATE_FILE)
+<li>
+Вставлен блок определения переменной <code>VBOX_INTEGRITY_CHECK</code>, которая будет использоваться вместо фиксированной опции:
+<source>
+if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_CROSS_CERTIFICATE_FILE)
 	VBOX_INTEGRITY_CHECK := /IntegrityCheck
 else
 	VBOX_INTEGRITY_CHECK := /IntegrityCheck:NO
-endif</source>
+endif
+</source>
 </li>
-<li>Чуть ниже идёт команда:
-<source>	$(VBOX_VCC_EDITBIN) /LargeAddressAware /DynamicBase /NxCompat /Release /IntegrityCheck \
+<li>
+Чуть ниже идёт вызов утилиты <code>editbin</code>:
+<source>
+	$(VBOX_VCC_EDITBIN) /LargeAddressAware /DynamicBase /NxCompat /Release /IntegrityCheck \
 		/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
-		"$@"</source>
-Замените здесь <code>/IntegrityCheck</code> на <code>$(VBOX_INTEGRITY_CHECK)</code>.
+		"$@"
+</source>
+В нём безусловный <code>/IntegrityCheck</code> заменяется на новую переменную <code>$(VBOX_INTEGRITY_CHECK)</code>.
 </li>
-<li>Теперь нужно найти все вхождения следующего вида:
-<source>ifdef VBOX_SIGNING_MODE
+<li>
+Далее ищутся все вхождения следующего вида:
+<source>
+ifdef VBOX_SIGNING_MODE
  TEMPLATE_XXXXXX_LDFLAGS          += -IntegrityCheck
-endif</source>
+endif
+</source>
 или
-<source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_WITH_HARDENING)
+<source>
+if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_WITH_HARDENING)
  TEMPLATE_XXXXXX_LDFLAGS          += -IntegrityCheck
-endif</source>
-где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. Всего таких вхождений — 6 штук, по три каждого вида. Здесь нужно добавить условие, что переменная кросс-сертификата определена. В итоге первая строчка должна выглядеть, соответственно, как
+endif
+</source>
+где вместо «<code>XXXXXX</code>» могут быть различные имена компонентов. Всего таких вхождений — 6 штук, по три каждого вида. Здесь добавляется условие, что переменная кросс-сертификата определена. В итоге первая строчка превращается, соответственно, в одну из нижеследующих:
 <source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_CROSS_CERTIFICATE_FILE)</source>
 или
 <source>if defined(VBOX_SIGNING_MODE) &amp;&amp; defined(VBOX_CROSS_CERTIFICATE_FILE) &amp;&amp; defined(VBOX_WITH_HARDENING)</source>
 </li>
 </ul>
 </li>
-<li>
-Ну и, наконец, создаём в корне рабочего каталога файл с именем <code>LocalConfig.kmk</code>, в который прописываем следующее содержимое:
-<source>VBOX_WITH_HARDENING :=
+</ol>
+<br/>
+<anchor>final-touches-localconfig</anchor><h5>• Файл конфигурации сборки VB</h5><br/>
+Осталось только создать в корне каталога с исходниками VB файл с именем <code>LocalConfig.kmk</code>, куда прописываются различные пути и параметры сборки. В качестве шаблона можно взять следующий код:
+<source>
+VBOX_WITH_HARDENING :=
 VBOX_PATH_WIX := C:\Programs\WiX
 VBOX_GSOAP_INSTALLED := 1
 VBOX_PATH_GSOAP := C:\Programs\gSOAP
@@ -754,8 +826,8 @@ VBOX_WITH_ADDITIONS :=
 VBOX_WITH_ADDITIONS_PACKING := 1
 VBOX_HAVE_XMLLINT := 1
 VBOX_XMLLINT := C:\Programs\xmllint\bin\xmllint.exe
-VBOX_PATH_DOCBOOK        := C:/Programs/DocBook/xsl
-VBOX_PATH_DOCBOOK_DTD    := C:/Programs/DocBook/xml
+VBOX_PATH_DOCBOOK := C:/Programs/DocBook/xsl
+VBOX_PATH_DOCBOOK_DTD := C:/Programs/DocBook/xml
 VBOX_PATH_HTML_HELP_WORKSHOP := "C:\Program Files (x86)\HTML Help Workshop"
 VBOX_PDFLATEX := C:\Programs\MiKTeX\miktex\bin\pdflatex.exe
 VBOX_PDFLATEX_CMD := $(VBOX_PDFLATEX) -halt-on-error -interaction batchmode
@@ -771,35 +843,36 @@ SDK_VBOX_VPX := 1
 VBOX_WITH_LIBVPX := 1
 SDK_VBOX_OPUS := 1
 VBOX_WITH_LIBOPUS := 1
-VBOX_BUILD_PUBLISHER := _OSE</source>
-В вышеприведённом шаблоне необходимо кое-что подправить:
+VBOX_BUILD_PUBLISHER := _OSE
+</source>
+В этом шаблоне необходимо кое-что подправить:
 <ul>
 <li>В переменных <code>VBOX_CERTIFICATE_SUBJECT_NAME</code> и <code>VBOX_CERTIFICATE_SHA2_SUBJECT_NAME</code> потребуется указать имена используемых вами сертификатов для подписи SHA-1 и SHA-256, соответственно.</li>
 <li>В переменных <code>VBOX_CERTIFICATE_FINGERPRINT</code> и <code>VBOX_CERTIFICATE_SHA2_FINGERPRINT</code> пропишите цифровые отпечатки, которые были скопированы ранее из консоли управления сертификатами.</li>
-<li>Если у вас не самоподписанный сертификат, а покупной, то удалите строчки с переменными <code>VBOX_CROSS_CERTIFICATE_FILE_ARGS</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE_ARGS</code>, а в переменных <code>VBOX_CROSS_CERTIFICATE_FILE</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE</code> (без «<code>_ARGS</code>») задайте полный путь к файлу кросс-сертификата (без него драйверы не будут считаться подписанными). Его можно найти на сайте компании, выпустившей сертификат, или <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/dn170454(v=vs.85).aspx">у Microsoft</a>.</li>
+<li>Если у вас не самоподписанный сертификат, а покупной, то удалите строчки с переменными <code>VBOX_CROSS_CERTIFICATE_FILE_ARGS</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE_ARGS</code>, а в переменных <code>VBOX_CROSS_CERTIFICATE_FILE</code> и <code>VBOX_CROSS_CERTIFICATE_SHA2_FILE</code> (без «<code>_ARGS</code>») задайте полный путь к файлу кросс-сертификата (без него драйверы не будут считаться подписанными). Его можно найти на сайте компании, выпустившей сертификат, или <a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/install/cross-certificates-for-kernel-mode-code-signing">у Microsoft</a>.</li>
 <li>Для более тонкой настройки подписывания имеется множество других переменных, с помощью которых можно задать хранилище, адрес сервера для наложения временно́й метки или вообще задать произвольный дополнительный набор аргументов для утилиты <code>signtool</code>. В файле <code>Config.kmk</code> под комментарием «Code Signing» можно посмотреть, какие там переменные определяются и как они используются.</li>
-<li>Если вы устанавливали какие-то из программ в каталоги, отличающиеся от моих, нужно поправить пути в соответствующих переменных.</li>
-<li>Для WiX необходимо указывать путь к исполняемым файлам. Для портативной версии это каталог, куда был распакован архив; для установленной версии это подкаталог <code>bin</code>. Обратите внимание, что если путь содержит пробелы, то необходимо преобразовать его в формат 8.3. Для этого можно воспользоваться командой <code>dir /x</code>. Трюк со взятием в кавычки здесь, увы, не работает.</li>
+<li>Если вы устанавливали какие-то из программ в каталоги, отличающиеся от моих, нужно поправить пути в соответствующих переменных. Крайне желательно использовать тот же стиль слэшей (прямые/обратные), что приведён в шаблоне для каждой переменной: для некоторых из них это критично.</li>
+<li>Для WiX необходимо указывать путь к исполняемым файлам. В портативной версии это каталог, куда был распакован архив; в установленной версии это подкаталог <code>bin</code>. Обратите внимание, что если путь содержит пробелы, то необходимо преобразовать его в формат 8.3. Для этого можно воспользоваться командой <code>dir /x</code>. Трюк со взятием в кавычки здесь, увы, не работает.</li>
 <li>Переменная <code>VBOX_BUILD_PUBLISHER</code> задаёт брэндированный суффикс в номере версии. По умолчанию это «_OSE» (т. е. продукт имеет версию «6.0.2_OSE»). Здесь вы можете поменять его на что-то другое или даже на пустую строку, чтобы убрать суффикс совсем (если переменная отсутствует, применится суффикс «_OSE»).</li>
 </ul>
 Остальные переменные используются в основном для выбора собираемых компонентов. Ну и главная строка, ради которой всё и затевалось, идёт самой первой: отключаем hardening.<br/>
-</li>
-</ol>
 <br/>
 
 <anchor>build-vb</anchor><h4><img src="<%bullet%>"/> Собираем VirtualBox</h4><br/>
-Ну вот, теперь, наконец, можно и приступать к сборке собственно VirtualBox. Если вы любите параллельную сборку, то придётся от этой привычки временно отказаться (или собирать в двух копиях дерева исходных кодов): здесь используется общий файл конфигурации, который нужно перегенерировать перед началом сборки. И если во время 64-битной компиляции в нём неожиданно окажутся пути к 32-битным библиотекам, компилятору это очень не понравится.<br/>
+Ну вот, теперь, наконец, можно и приступать к сборке собственно VirtualBox. Если вы любите собирать под несколько архитектур параллельно, то придётся от этой привычки временно отказаться (или собирать в двух копиях дерева исходных кодов): здесь используется общий файл конфигурации, который нужно перегенерировать перед началом сборки. И если во время 64-битной компиляции в нём неожиданно окажутся пути к 32-битным библиотекам, компилятору это очень не понравится.<br/>
 <ol>
 <li>
 Начинаем со сборки 64-битной версии. Открываем консоль, выполняем команды:
-<source lang="dos">cd /d C:\Devel\VirtualBox-src
+<source lang="dos">
+cd /d C:\Devel\VirtualBox-src
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
 set BUILD_TARGET_ARCH=amd64
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-openssl32=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x64 --with-libcurl32=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.3-x64 --with-libvpx=C:\Programs\libvpx --with-libopus=C:\Programs\libopus --with-python=C:/Programs/Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-6.0.2_OSE-r127994-MultiArch_amd64.msi</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-6.0.2_OSE-r127994-MultiArch_amd64.msi
+</source>
 Скрипт <code>configure.vbs</code> проверяет окружение и создаёт файлы конфигурации (<code>AutoConfig.kmk</code> и <code>env.bat</code>). Первый запуск <code>kmk</code> выполняет сборку бинарных компонентов и помещает их в каталог <code>out\win.amd64\bin\</code>. Последняя команда собирает из этих компонентов промежуточный MSI-архив. Важные моменты:
 <ul>
 <li>Слэши в последней команде должны быть обязательно прямыми. С обратными <code>kmk</code> не найдёт сборочные правила.</li>
@@ -810,14 +883,16 @@ kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-6.0.2_O
 </li>
 <li>
 Теперь компилируем 32-битную версию и пакуем весь комплект в единый инсталлятор. Открываем новую консоль, выполняем команды:
-<source lang="dos">cd /d C:\Devel\VirtualBox-src
+<source lang="dos">
+cd /d C:\Devel\VirtualBox-src
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
 COLOR 07
 set BUILD_TARGET_ARCH=x86
 cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-MinGW32=C:\Programs\mingw32 --with-libSDL=C:\Programs\SDL\x32 --with-openssl=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.3-x32 --with-libvpx=C:\Programs\libvpx --with-libopus=C:\Programs\libopus --with-python=C:/Programs/Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-6.0.2_OSE-r127994-MultiArch.exe</source>
+kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-6.0.2_OSE-r127994-MultiArch.exe
+</source>
 Аналогично, суффикс «_OSE» в имени итогового файла надо поменять на свой.<br/>
 Обратите внимание, что в последней команде указано расширение <code>EXE</code>, а не <code>MSI</code>. Мы собираем сразу финальный инсталлятор, а промежуточный 32-битный MSI-архив соберётся автоматически, по зависимостям.
 </li>
@@ -825,27 +900,33 @@ kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-6.0.2_OSE-r127994
 <br/>
 Если ни я, ни вы ничего не перепутали, то после всех этих перипетий у вас должен получиться инсталлятор VirtualBox, отличающийся от Oracle-версии только значком исполняемого файла, картинкой в диалоге «О программе» и, конечно же, отключённым hardening'ом. При желании значок и картинку тоже можно поменять, но это тема отдельного разговора.<br/>
 <br/>
-Для удобства я свёл запуск этих двух цепочек команд в <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/blob/master/misc/build-all.cmd">единый батник</a>. Если вам регулярно нужно пересобирать пакет, удобнее пользоваться им.
+Для удобства я свёл запуск этих двух цепочек команд в <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/blob/master/misc/build-all.cmd">единый батник</a>. Если вам регулярно нужно пересобирать пакет, удобнее пользоваться им.<br/>
 <br/>
-Как неожиданно обнаружилось после выхода статьи, самоподписанный дистрибутив VB отказывается устанавливаться на современные системы (Windows 8/10), сообщая о невалидной подписи драйверов. Причём это происходит даже в тестовом режиме, где валидность подписи не должна играть никакой роли. Чтобы обойти эту проблему, необходимо добавить использовавшиеся сертификаты в корневое хранилище:
+Добавлю ещё лишь пару слов об установке полученного дистрибутива с самоподписанным сертификатом. В современных системах (Windows 8/10) одного лишь включения тестового режима, как оказалось, недостаточно, при установке выводится сообщение о невалидной подписи. Чтобы обойти эту проблему, необходимо добавить использовавшиеся сертификаты в корневое хранилище:
 <ol>
-<li>Откройте свойства скачанного файла дистрибутива: правый щелчок &rarr; Properties, перейдите на вкладку Digital Signatures. Там будут две подписи от «Roga and Kopyta Ltd»: sha1 и sha256. Выделяем первую, жмём Details.</li>
-<li>В открывшемся диалоге жмём кнопку View Certificate.</li>
-<li>В новом диалоге жмём Install Certificate.</li>
-<li>Выбираем для установки Local Machine, Next. Подтверждаем UAC-запрос. Отмечаем пункт "Place all certificates in the following store", нажимаем Browse и выбираем хранилище "Trusted Root Certification Authorities". Next, Finish. Сертификат установлен.</li>
-<li>Закрываем все диалоги, кроме самого первого, выделяем подпись sha256, повторям для неё шаги 3–5.</li>
-<li>Закрываем все диалоги, запускаем установку.</li>
+<li>Откройте свойства скачанного файла дистрибутива: правый щелчок &rarr; <i>Свойства</i>, перейдите на вкладку <i>Цифровые подписи</i>. Там будут две подписи от «Roga and Kopyta Ltd»: sha1 и sha256. Выделяем первую, жмём <i>Сведения</i>.</li>
+<li>В открывшемся диалоге жмём кнопку <i>Просмотр сертификата</i>.</li>
+<li>В новом диалоге жмём <i>Установить сертификат</i>.</li>
+<li>Выбираем для установки «Локальный компьютер», нажимаем <i>Далее</i>. Подтверждаем UAC-запрос. Отмечаем пункт «Поместить все сертификаты в следующее хранилище», нажимаем <i>Обзор</i> и выбираем хранилище «Доверенные корневые центры сертификации». <i>Далее</i>, <i>Готово</i>. Сертификат установлен.</li>
+<li>Закрываем все диалоги, кроме самого первого, выделяем подпись sha256, повторяем для неё шаги 2–4.</li>
+<li>Закрываем все диалоги, запускаем установку. Теперь она должна пройти успешно.</li>
 </ol>
 <br/>
 <anchor>afterword</anchor><h4><img src="<%bullet%>"/> Послесловие</h4>
 <br/>
 Размер статьи оказался неожиданностью для меня самого. Когда я начинал её писать, то намеревался подробно рассказывать, почему на каждом этапе было выбрано то или иное решение, какие конкретно ошибки выскакивают, если не применить очередную правку, и какие могут быть альтернативные подходы к решению этих ошибок. Но постепенно понял, что если бы я всё это описывал, статья получилась бы и вовсе неприподъёмной. Поэтому прошу прощения за встречающийся кое-где стиль «делай так, а почему — не скажу». Сам недолюбливаю такие инструкции, но тут не видел иного выхода. Впрочем, в отдельных местах я всё-таки постарался хотя бы вкратце пояснить суть происходящего.<br/>
 <br/>
-Огромное количество аспектов сборочной системы VB осталось за кадром: как из-за нежелания раздувать текст, так и по причине моей лени, когда, найдя какой-то обходной путь для очередной проблемы, я не лез в глубины системы сборки, а поскорее переходил к следующему этапу. В конце концов, моей главной задачей было не найти оптимальный путь, а собрать, наконец, свой вариант актуального VirtualBox'а: сидеть на 4.3.12 уже поднадоело, но я не мог обновлять один из своих основных рабочих инструментов на нечто, что в любой момент может просто отказаться работать на неопределённый срок.<br/>
+Огромное количество аспектов сборочной системы VB осталось за кадром: как из-за нежелания раздувать текст, так и по причине моей лени, когда, найдя какой-то обходной путь для очередной проблемы, я не лез в глубины системы сборки, а поскорее переходил к следующему этапу. В конце концов, моей главной задачей было не найти оптимальный путь, а собрать, наконец, свой вариант актуального VirtualBox'а: сидеть на 4.3.12 уже поднадоело, но я не мог обновлять один из своих основных рабочих инструментов на нечто, что в любой момент может просто отказаться работать на неопределённый срок. Правда, по мере выхода новых версий я иногда узнаю о каких-нибудь новых возможностях сборочной системы и, опробовав их, добавляю соответствующую информацию в статью.<br/>
 <br/>
 Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Для тех, кому лень поднимать всё вышеописанное нагромождение программ, но интересно расковырять получающийся в итоге дистрибутив, я выложил инсталлятор на Яндекс-диск: <a href="https://yadi.sk/d/Cvvj_7gs8Yf2oA">6.0.2</a>. Все драйверы в них (да и остальные файлы) подписаны недоверенным сертификатом, так что в 64-битной Windows этот вариант VB заработает только в тестовом режиме. Если имеются вопросы, пожелания, предложения — велкам в комментарии или в личку. И да пребудет с вами Open Source!<br/>
 <br/>
 <anchor>history</anchor><h4><img src="<%bullet%>"/> Дополнения</h4><br/>
+<spoiler title="Архив">
+<h5>• Публикация статьи, 21.01.2016</h5>
+<ol>
+<li>VirtualBox 5.0.12.</li>
+</ol>
+<br/>
 <h5>• Обновление статьи от 24.05.2016</h5>
 <ol>
 <li>Внесены уточнения с учётом изменений в VB 5.0.20, в частности, двойное подписывание SHA-1/SHA-256.</li>
@@ -904,7 +985,7 @@ kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-6.0.2_OSE-r127994
 <li>Переход с MinGW-32 3.3.3 на 4.5.4.</li>
 <li>Актуализированы версии Qt, cURL, OpenSSL, gSOAP и некоторых сборочных инструментов; поправлены инструкции для cURL, gSOAP и самого VB.</li>
 <li>Использование локальных архивов DocBook XML/XSL вместо онлайн-версий.</li>
-<li>Переход с wget на curl для скачивания образа гостевых дополнений.</li>
+<li>Переход с wget на cURL для скачивания образа гостевых дополнений.</li>
 <li>Различные мелкие правки.</li>
 </ol>
 <br/>
@@ -926,6 +1007,7 @@ kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-6.0.2_OSE-r127994
 <li>Актуализированы версии cURL, OpenSSL, gSOAP.</li>
 <li>Добавлен единый патч-файл для внесения всех описанных изменений в дерево исходников VirtualBox.</li>
 </ol>
+</spoiler>
 <br/>
 <h5>• Обновление статьи от 25.01.2019</h5>
 <ol>
