@@ -135,14 +135,13 @@ sub makeTarget($$) {
 		$contents .= "» <a href=\"#$1\">$2</a><br/>\r\n";
 	}
 	$data =~ s!<%contents%>\r?\n!$contents!gs;
-	# Language-specific processing: keep the text from the currently selected language tags, and delete all the others.
-	# But first, delete the cosmetical EOLs between the language blocks.
+	# Delete the cosmetical EOLs between the language blocks and at the start/end of the source blocks.
 	my @langs = sort(keys(%langData));
-	for my $l1 (@langs) {
-		for my $l2 (@langs) {
-			$data =~ s!</$l1>\r?\n<$l2>!</$l1><$l2>!gs;
-		}
-	}
+	my $langs_regexp = join('|', @langs);
+	$data =~ s!(</$langs_regexp>)\r?\n(<$langs_regexp>)!$1$2!gs;
+	$data =~ s!(<source[^<>]*>)\r?\n!$1!gs;
+	$data =~ s!\r?\n(</source>)!$1!gs;
+	# Language-specific processing: keep the text from the currently selected language tags, and delete all the others.
 	for my $checkLang (sort(keys(%langData))) {
 		if ($checkLang eq $lang) {
 			$data =~ s!<$checkLang>(.*?)</$checkLang>!$1!gs;
