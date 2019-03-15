@@ -14,7 +14,15 @@ rem Hardcode for when there are several local configs that include the same comm
 if exist LocalConfig-common.kmk for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER :=" LocalConfig-common.kmk') do SET VBOX_VER_PUB=%%i
 for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER :=" LocalConfig.kmk') do SET VBOX_VER_PUB=%%i
 
+SET WIN10_MS_SIGN=0
+if exist LocalConfig-common.kmk for /f "tokens=3" %%i in ('findstr /B /C:"WIN10_MS_SIGN :=" LocalConfig-common.kmk') do SET WIN10_MS_SIGN=%%i
+for /f "tokens=3" %%i in ('findstr /B /C:"WIN10_MS_SIGN :=" LocalConfig.kmk') do SET WIN10_MS_SIGN=%%i
+
+if exist LocalConfig-common.kmk for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_PATH_SIGN_TOOLS :=" LocalConfig-common.kmk') do SET VBOX_PATH_SIGN_TOOLS=%%i
+for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_PATH_SIGN_TOOLS :=" LocalConfig.kmk') do SET VBOX_PATH_SIGN_TOOLS=%%i
+
 set VERSION=%VBOX_VER_MJ%.%VBOX_VER_MN%.%VBOX_VER_BLD%%VBOX_VER_PUB%-r%VBOX_REV%
+set VERSION_CAB=%VBOX_VER_MJ%.%VBOX_VER_MN%.%VBOX_VER_BLD%%VBOX_VER_PUB%r%VBOX_REV%
 set VBOX_VER_MJ=
 set VBOX_VER_MN=
 set VBOX_VER_BLD=
@@ -34,6 +42,29 @@ echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 echo call env.bat>> build-tmp.cmd
 echo kmk>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+if NOT ".%WIN10_MS_SIGN%" == ".0" (
+	echo echo ### Signing 64-bit drivers for Windows 10>> build-tmp.cmd
+	echo cd %WORKING_DIR%out\win.amd64\release\repack>> build-tmp.cmd
+	echo call PackDriversForSubmission.cmd -x>> build-tmp.cmd
+	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+	echo set KBUILD_DEVTOOLS=%WORKING_DIR%tools>> build-tmp.cmd
+	echo set KBUILD_BIN_PATH=%WORKING_DIR%kBuild\bin\win.amd64>> build-tmp.cmd
+	echo set _MY_SIGNTOOL=%VBOX_PATH_SIGN_TOOLS%\signtool.exe>> build-tmp.cmd
+	echo set SRC_FILE=VBoxDrivers-%VERSION_CAB%-amd64.cab>> build-tmp.cmd
+	echo set DST_FILE=VBoxDrivers-%VERSION_CAB%-amd64-mssigned.zip>> build-tmp.cmd
+	echo call sign-dual.cmd %%SRC_FILE%%>> build-tmp.cmd
+	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+	echo python %WORKING_DIR%sign_ms.py %%SRC_FILE%% %%DST_FILE%%>> build-tmp.cmd
+	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+	echo call UnpackBlessedDrivers.cmd -n -i %%DST_FILE%%>> build-tmp.cmd
+	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+	echo set KBUILD_DEVTOOLS=>> build-tmp.cmd
+	echo set KBUILD_BIN_PATH=>> build-tmp.cmd
+	echo set _MY_SIGNTOOL=>> build-tmp.cmd
+	echo set SRC_FILE=>> build-tmp.cmd
+	echo set DST_FILE=>> build-tmp.cmd
+	echo cd %WORKING_DIR%>> build-tmp.cmd
+)
 echo echo ### Building the 64-bit MSI>> build-tmp.cmd
 echo kmk %WORKING_DIR_NIX%out/win.x86/release/obj/Installer/VirtualBox-%VERSION%-MultiArch_amd64.msi>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
@@ -55,6 +86,29 @@ echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 echo call env.bat>> build-tmp.cmd
 echo kmk>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+if NOT ".%WIN10_MS_SIGN%" == ".0" (
+	echo echo ### Signing 32-bit drivers for Windows 10>> build-tmp.cmd
+	echo cd %WORKING_DIR%out\win.x86\release\repack>> build-tmp.cmd
+	echo call PackDriversForSubmission.cmd -x>> build-tmp.cmd
+	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+	echo set KBUILD_DEVTOOLS=%WORKING_DIR%tools>> build-tmp.cmd
+	echo set KBUILD_BIN_PATH=%WORKING_DIR%kBuild\bin\win.x86>> build-tmp.cmd
+	echo set _MY_SIGNTOOL=%VBOX_PATH_SIGN_TOOLS%\signtool.exe>> build-tmp.cmd
+	echo set SRC_FILE=VBoxDrivers-%VERSION_CAB%-x86.cab>> build-tmp.cmd
+	echo set DST_FILE=VBoxDrivers-%VERSION_CAB%-x86-mssigned.zip>> build-tmp.cmd
+	echo call sign-dual.cmd %%SRC_FILE%%>> build-tmp.cmd
+	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+	echo python %WORKING_DIR%sign_ms.py %%SRC_FILE%% %%DST_FILE%%>> build-tmp.cmd
+	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+	echo call UnpackBlessedDrivers.cmd -n -i %%DST_FILE%%>> build-tmp.cmd
+	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+	echo set KBUILD_DEVTOOLS=>> build-tmp.cmd
+	echo set KBUILD_BIN_PATH=>> build-tmp.cmd
+	echo set _MY_SIGNTOOL=>> build-tmp.cmd
+	echo set SRC_FILE=>> build-tmp.cmd
+	echo set DST_FILE=>> build-tmp.cmd
+	echo cd %WORKING_DIR%>> build-tmp.cmd
+)
 echo echo ### Building the full installer>> build-tmp.cmd
 echo kmk %WORKING_DIR_NIX%out/win.x86/release/bin/VirtualBox-%VERSION%-MultiArch.exe>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
