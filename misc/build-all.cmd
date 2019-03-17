@@ -1,10 +1,17 @@
 @echo off
 
-cd /d %~dp0
+set WORKING_DIR=%~dp0
+set WORKING_DIR_NIX=%WORKING_DIR:\=/%
+cd /d %WORKING_DIR%
+if ERRORLEVEL 1 exit /b 1
+
 for /f "tokens=3" %%i in ('findstr /B /R /C:"VBOX_VERSION_MAJOR *=" Version.kmk') do SET VBOX_VER_MJ=%%i
 for /f "tokens=3" %%i in ('findstr /B /R /C:"VBOX_VERSION_MINOR *=" Version.kmk') do SET VBOX_VER_MN=%%i
 for /f "tokens=3" %%i in ('findstr /B /R /C:"VBOX_VERSION_BUILD *=" Version.kmk') do SET VBOX_VER_BLD=%%i
 for /f "tokens=6" %%i in ('findstr /C:"$Rev: " Config.kmk') do SET VBOX_REV=%%i
+
+rem Hardcode for when there are several local configs sharing the same part via including
+if exist LocalConfig-common.kmk for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER :=" LocalConfig-common.kmk') do SET VBOX_VER_PUB=%%i
 for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER :=" LocalConfig.kmk') do SET VBOX_VER_PUB=%%i
 
 set VERSION=%VBOX_VER_MJ%.%VBOX_VER_MN%.%VBOX_VER_BLD%%VBOX_VER_PUB%-r%VBOX_REV%
@@ -27,7 +34,8 @@ echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 echo call env.bat>> build-tmp.cmd
 echo kmk>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/obj/Installer/VirtualBox-%VERSION%-MultiArch_amd64.msi>> build-tmp.cmd
+echo echo ### Building the 64-bit MSI>> build-tmp.cmd
+echo kmk %WORKING_DIR_NIX%/out/win.x86/release/obj/Installer/VirtualBox-%VERSION%-MultiArch_amd64.msi>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 
 cmd /c build-tmp.cmd
@@ -47,7 +55,8 @@ echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 echo call env.bat>> build-tmp.cmd
 echo kmk>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-echo kmk C:/Devel/VirtualBox-src/out/win.x86/release/bin/VirtualBox-%VERSION%-MultiArch.exe>> build-tmp.cmd
+echo echo ### Building the full installer>> build-tmp.cmd
+echo kmk %WORKING_DIR_NIX%/out/win.x86/release/bin/VirtualBox-%VERSION%-MultiArch.exe>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 
 cmd /c build-tmp.cmd
