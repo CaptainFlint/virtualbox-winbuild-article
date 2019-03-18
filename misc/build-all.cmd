@@ -14,6 +14,9 @@ rem Hardcode for when there are several local configs sharing the same part via 
 if exist LocalConfig-common.kmk for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER :=" LocalConfig-common.kmk') do SET VBOX_VER_PUB=%%i
 for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER :=" LocalConfig.kmk') do SET VBOX_VER_PUB=%%i
 
+SET WIN10_MS_SIGN=0
+for /f "tokens=3" %%i in ('findstr /B /C:"WIN10_MS_SIGN :=" LocalConfig.kmk') do SET WIN10_MS_SIGN=%%i
+
 set VERSION=%VBOX_VER_MJ%.%VBOX_VER_MN%.%VBOX_VER_BLD%%VBOX_VER_PUB%-r%VBOX_REV%
 set VBOX_VER_MJ=
 set VBOX_VER_MN=
@@ -34,6 +37,18 @@ echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 echo call env.bat>> build-tmp.cmd
 echo kmk>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
+if NOT ".%WIN10_MS_SIGN%" == ".0" (
+	echo echo ### Signing 64-bit drivers for Windows 10>> build-tmp.cmd
+
+	rem cd %WORKING_DIR%\out\win.amd64\release\repack
+	rem PackDriversForSubmission.cmd -x
+	rem sign-ev.cmd VBoxDrivers-6.0.4r128164-amd64.cab
+	rem sign-ms.cmd VBoxDrivers-6.0.4r128164-amd64.cab -o Signed_1152921504627944477.zip
+	rem set KBUILD_DEVTOOLS=C:\Devel\VirtualBox-src\tools
+	rem set KBUILD_BIN_PATH=C:\Devel\VirtualBox-src\kBuild\bin\win.amd64
+	rem UnpackBlessedDrivers.cmd -n -i Signed_1152921504627944477.zip
+	rem cd %WORKING_DIR%
+)
 echo echo ### Building the 64-bit MSI>> build-tmp.cmd
 echo kmk %WORKING_DIR_NIX%/out/win.x86/release/obj/Installer/VirtualBox-%VERSION%-MultiArch_amd64.msi>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
