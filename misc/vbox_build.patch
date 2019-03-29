@@ -1,8 +1,8 @@
 diff --git a/Config.kmk b/Config.kmk
-index 5e0ea4ad4c..3fa46ca5f9 100644
+index 7222ec007..4d554fa6d 100644
 --- a/Config.kmk
 +++ b/Config.kmk
-@@ -3867,6 +3867,12 @@ if defined(VBOX_SIGNING_MODE) && "$(KBUILD_TARGET)" == "win"
+@@ -3866,6 +3866,12 @@ if defined(VBOX_SIGNING_MODE) && "$(KBUILD_TARGET)" == "win"
  	$(evalcall VBOX_RE_SIGN_DLL_INTERNAL_FN,$1,$2,$3)\
  	,)$($(1)_0_OUTDIR)/$(3)$(notdir $2)
  
@@ -15,7 +15,7 @@ index 5e0ea4ad4c..3fa46ca5f9 100644
  define VBOX_RE_SIGN_DLL_INTERNAL_FN
  local n = $(3)$(notdir $2)
  ifndef $(1)_VBOX_RE_SIGNED_$(n)
-@@ -3877,7 +3883,7 @@ ifndef $(1)_VBOX_RE_SIGNED_$(n)
+@@ -3876,7 +3882,7 @@ ifndef $(1)_VBOX_RE_SIGNED_$(n)
  	$(call MSG_TOOL,SIGNTOOL,,$<,$@)
  	$(RM) -f -- "$@"
  	$(CP) -- "$<" "$@"
@@ -24,7 +24,7 @@ index 5e0ea4ad4c..3fa46ca5f9 100644
  		/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
  		"$@"
  	$(call VBOX_SIGN_IMAGE_FN,$@)
-@@ -4236,7 +4242,7 @@ ifdef VBOX_WITH_RAW_MODE
+@@ -4235,7 +4241,7 @@ ifdef VBOX_WITH_RAW_MODE
    	-Driver -Subsystem:NATIVE -Incremental:NO -Align:64 -MapInfo:Exports -NoD $(VBOX_VCC_LD_WERR) -Release -Debug -Opt:Ref -Opt:Icf \
    	-Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
    	-Stub:$(PATH_ROOT)/src/VBox/HostDrivers/Support/win/winstub.com
@@ -33,7 +33,7 @@ index 5e0ea4ad4c..3fa46ca5f9 100644
     TEMPLATE_VBoxRc_LDFLAGS          += -IntegrityCheck
    endif
    TEMPLATE_VBoxRc_LIBS               = \
-@@ -4381,7 +4387,7 @@ TEMPLATE_VBoxR0_LDFLAGS             = -Ignore:4197 \
+@@ -4380,7 +4386,7 @@ TEMPLATE_VBoxR0_LDFLAGS             = -Ignore:4197 \
   ifdef VBOX_WITH_DTRACE_R0
  TEMPLATE_VBoxR0_LDFLAGS            += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -42,7 +42,7 @@ index 5e0ea4ad4c..3fa46ca5f9 100644
    TEMPLATE_VBoxR0_LDFLAGS          += -IntegrityCheck
   endif
  TEMPLATE_VBoxR0_LIBS                = \
-@@ -4509,7 +4515,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -4508,7 +4514,7 @@ ifeq ($(KBUILD_TARGET),win)
   ifdef VBOX_WITH_DTRACE_R0DRV
    TEMPLATE_VBOXR0DRV_LDFLAGS          += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -51,7 +51,7 @@ index 5e0ea4ad4c..3fa46ca5f9 100644
    TEMPLATE_VBOXR0DRV_LDFLAGS          += -IntegrityCheck
   endif
   TEMPLATE_VBOXR0DRV_ORDERDEPS          = $(VBOX_SIGN_DRIVER_ORDERDEPS)
-@@ -5030,7 +5036,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -5029,7 +5035,7 @@ ifeq ($(KBUILD_TARGET),win)
   ifdef VBOX_WITH_DTRACE_R3
    TEMPLATE_VBOXR3EXE_LDFLAGS          += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -60,7 +60,7 @@ index 5e0ea4ad4c..3fa46ca5f9 100644
     TEMPLATE_VBOXR3EXE_LDFLAGS         += -IntegrityCheck
   endif
  
-@@ -5944,7 +5950,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -5943,7 +5949,7 @@ ifeq ($(KBUILD_TARGET),win)
  	/DISALLOWLIB:libcmtd.lib \
  	/DISALLOWLIB:msvcrt$(VBOX_VCC_CRT_TYPE_N).lib \
  	/DISALLOWLIB:msvcprt$(VBOX_VCC_CRT_TYPE_N).lib
@@ -69,7 +69,7 @@ index 5e0ea4ad4c..3fa46ca5f9 100644
    TEMPLATE_VBOXMAINEXE_LDFLAGS          += -IntegrityCheck
   endif
   ifdef VBOX_WITH_DTRACE_R3_MAIN
-@@ -6528,7 +6534,7 @@ ifdef VBOX_WITH_QTGUI
+@@ -6527,7 +6533,7 @@ ifdef VBOX_WITH_QTGUI
  	/NOD /INCREMENTAL:NO /MAPINFO:EXPORTS /LargeAddressAware /DynamicBase /NxCompat /Release /Debug /Opt:Ref /Opt:Icf \
  	/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
  	/STUB:$(PATH_ROOT)/src/VBox/HostDrivers/Support/win/winstub.com
@@ -79,7 +79,7 @@ index 5e0ea4ad4c..3fa46ca5f9 100644
    endif
    TEMPLATE_VBOXQTGUIEXE_SDKS += $(VBOX_WINPSDK)
 diff --git a/configure.vbs b/configure.vbs
-index a816231bf0..2c023db1b3 100644
+index a816231bf..2c023db1b 100644
 --- a/configure.vbs
 +++ b/configure.vbs
 @@ -1095,7 +1095,7 @@ sub CheckForVisualCPP(strOptVC, strOptVCCommon, blnOptVCExpressEdition)
@@ -293,7 +293,7 @@ index a816231bf0..2c023db1b3 100644
        EnvPrint "call " & g_strPathDev & "/env.cmd %1 %2 %3 %4 %5 %6 %7 %8 %9"
     end if
 diff --git a/doc/manual/Config.kmk b/doc/manual/Config.kmk
-index 5ded41873a..40afaed8df 100644
+index 5ded41873..40afaed8d 100644
 --- a/doc/manual/Config.kmk
 +++ b/doc/manual/Config.kmk
 @@ -145,6 +145,9 @@ ifdef VBOX_XML_CATALOG
@@ -360,7 +360,7 @@ index 5ded41873a..40afaed8df 100644
  
  endif # VBOX_XML_CATALOG
 diff --git a/doc/manual/Makefile.kmk b/doc/manual/Makefile.kmk
-index da8f685fd8..38635616de 100644
+index 87d03c560..3ff5eaeaa 100644
 --- a/doc/manual/Makefile.kmk
 +++ b/doc/manual/Makefile.kmk
 @@ -390,6 +390,7 @@ $$(VBOX_PATH_MANUAL_OUTBASE)/$(1)/user_$(2): $(3) \
@@ -371,8 +371,93 @@ index da8f685fd8..38635616de 100644
  	$$(QUIET)$$(call VBOX_XSLTPROC_WITH_CAT) --output $$@ $$(VBOX_PATH_MANUAL_SRC)/docbook-refentry-to-manual-sect1.xsl $$<
  endef
  $(foreach lang,$(VBOX_MANUAL_LANGUAGES),$(foreach file,$(VBOX_MANUAL_XML_REFENTRY_FILES) \
+diff --git a/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd b/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd
+index c8f54920a..803df7a89 100644
+--- a/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd
++++ b/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd
+@@ -151,15 +151,15 @@ goto end_failed
+ rem validate specified options
+ if not exist "%_MY_OPT_BINDIR%"     goto error_bindir_does_not_exist
+ 
+-if "%_MY_OPT_WITH_PDB" == "0"       goto no_pdbdir_validation
++if "%_MY_OPT_WITH_PDB%" == "0"       goto no_pdbdir_validation
+ if ".%_MY_OPT_PDBDIR%" == "."       set _MY_OPT_PDBDIR=%_MY_OPT_BINDIR%\..\stage\debug\bin
+ if not exist "%_MY_OPT_PDBDIR%"     goto error_pdbdir_does_not_exist
+ :no_pdbdir_validation
+ 
+-if "%_MY_OPT_WITH_EXTPACK" == "0"   goto no_extpack_validation
++if "%_MY_OPT_WITH_EXTPACK%" == "0"   goto no_extpack_validation
+ if ".%_MY_OPT_EXTPACK%" == "."      set _MY_OPT_EXTPACK=%_MY_OPT_BINDIR%\Oracle_VM_VirtualBox_Extension_Pack.vbox-extpack
+ if not exist "%_MY_OPT_EXTPACK%"    goto error_extpack_does_not_exist
+-:no_extack_validation
++:no_extpack_validation
+ 
+ if ".%_MY_OPT_OUTPUT%" == "."       set _MY_OPT_OUTPUT=VBoxDrivers-@VBOX_VERSION_STRING@r@VBOX_SVN_REV@-%_MY_OPT_ARCH%.cab
+ if exist "%_MY_OPT_OUTPUT%"         goto error_output_exists
+@@ -176,7 +176,7 @@ rem Note! Modify the path a little to ensure windows utilities are used before
+ rem       cygwin ones, and that we can use stuff from bin\tools if we like.
+ rem
+ set PATH=%SystemRoot%\System32;%PATH%;%_MY_OPT_BINDIR%
+-if "%_MY_OPT_WITH_EXTPACK" == "0"   goto no_extpack_unpack
++if "%_MY_OPT_WITH_EXTPACK%" == "0"   goto no_extpack_unpack
+ set _MY_EXTPACK_DIR=%_MY_OPT_BINDIR%\ExtensionPacks\Oracle_VM_VirtualBox_Extension_Pack
+ if not exist "%_MY_OPT_BINDIR%\ExtensionPacks"  ( mkdir "%_MY_OPT_BINDIR%\ExtensionPacks" || goto end_failed )
+ if not exist "%_MY_EXTPACK_DIR%"                ( mkdir "%_MY_EXTPACK_DIR%" || goto end_failed )
+@@ -233,7 +233,7 @@ if "%_MY_OPT_WITH_PDB%" == "1" echo %_MY_OPT_PDBDIR%\VMMR0.pdb VMMR0.pdb>>
+ echo %_MY_OPT_BINDIR%\VBoxDDR0.r0 VBoxDDR0.r0>>                                         "%_MY_OPT_DDF_FILE%"
+ if "%_MY_OPT_WITH_PDB%" == "1" echo %_MY_OPT_PDBDIR%\VBoxDDR0.pdb VBoxDDR0.pdb>>        "%_MY_OPT_DDF_FILE%"
+ 
+-if "%_MY_OPT_WITH_EXTPACK" == "0"   goto no_extpack_ddf
++if "%_MY_OPT_WITH_EXTPACK%" == "0"   goto no_extpack_ddf
+ echo .Set DestinationDir=VBoxExtPackPuel>>                                              "%_MY_OPT_DDF_FILE%"
+ echo .\VBoxExtPackPuel.inf VBoxExtPackPuel.inf>>                                        "%_MY_OPT_DDF_FILE%"
+ echo %_MY_EXTPACK_DIR%\win.%_MY_OPT_ARCH%\VBoxEhciR0.r0 VBoxEhciR0.r0>>                 "%_MY_OPT_DDF_FILE%"
+diff --git a/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd b/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd
+index 68192243f..e5fafa383 100644
+--- a/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd
++++ b/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd
+@@ -25,9 +25,6 @@ rem Globals and Check for environment variables we need.
+ rem
+ if ".%KBUILD_DEVTOOLS%" == "." (echo KBUILD_DEVTOOLS is not set & goto end_failed)
+ set _MY_DRIVER_BASE_NAMES=VBoxDrv VBoxNetAdp6 VBoxNetLwf VBoxUSB VBoxUSBMon
+-set _MY_DRIVER_BASE_NAMES=VBoxDrv VBoxNetAdp6 VBoxNetLwf VBoxUSB VBoxUSBMon
+-set _MY_UNZIP=%KBUILD_DEVTOOLS%\win.x86\bin\unzip.exe
+-if not exist "%_MY_UNZIP%" (echo "%_MY_UNZIP%" does not exist & goto end_failed)
+ 
+ rem
+ rem Parse arguments.
+@@ -109,16 +106,25 @@ if not exist "%_MY_OPT_INPUT%"      goto error_input_not_found
+ 
+ rem
+ rem Unpack the stuff.
+-rem We ignore error level 1 here as that is what unzip returns on warning (slashes).
+ rem
+-"%_MY_UNZIP%" -o -j "%_MY_OPT_INPUT%" -d "%_MY_OPT_BINDIR%" && goto unzip_okay
+-if NOT ERRORLEVEL 1 goto end_failed
++perl ^
++ -we " use Archive::Zip;                                                                    " ^
++ -we " my $z = Archive::Zip->new();                                                         " ^
++ -we " $z->read($ARGV[0]) == 0 or die 'Cannot read ' . $ARGV[0];                            " ^
++ -we " for ($z->members()) {                                                                " ^
++ -we "   my $fn = ($_->fileName() =~ s!^.*[\\/]([^\\/]*)$!$1!r);                            " ^
++ -we "   print 'Unpacked ' . $_->fileName() . ' into ' . $fn . $/;                          " ^
++ -we "   $_->extractToFileNamed($ARGV[1] . '\\' . $fn) == 0 or die 'Cannot extract ' . $fn; " ^
++ -we " }                                                                                    " ^
++ -we " print $/;                                                                            " ^
++ "%_MY_OPT_INPUT%" "%_MY_OPT_BINDIR%"
++if ERRORLEVEL 1 goto end_failed
+ :unzip_okay
+ 
+ rem
+ rem Verify it against the PreW10 catalog files we saved.
+ rem
+-set _MY_SIGNTOOL=%KBUILD_DEVTOOLS%\win.x86\sdk\v8.1\bin\x86\signtool.exe
++if not exist "%_MY_SIGNTOOL%" set _MY_SIGNTOOL=%KBUILD_DEVTOOLS%\win.x86\sdk\v8.1\bin\x86\signtool.exe
+ if not exist "%_MY_SIGNTOOL%" set _MY_SIGNTOOL=%KBUILD_DEVTOOLS%\win.x86\selfsign\r3\signtool.exe
+ 
+ for %%d in (%_MY_DRIVER_BASE_NAMES%) do (
 diff --git a/src/VBox/Makefile.kmk b/src/VBox/Makefile.kmk
-index 6e792e662f..2e4b1b5ab5 100644
+index 6e792e662..2e4b1b5ab 100644
 --- a/src/VBox/Makefile.kmk
 +++ b/src/VBox/Makefile.kmk
 @@ -91,6 +91,11 @@ else
@@ -388,7 +473,7 @@ index 6e792e662f..2e4b1b5ab5 100644
    include $(PATH_SUB_CURRENT)/ValidationKit/Makefile.kmk
   endif
 diff --git a/src/VBox/Runtime/Makefile.kmk b/src/VBox/Runtime/Makefile.kmk
-index b3eb641754..538c40da90 100644
+index b3eb64175..538c40da9 100644
 --- a/src/VBox/Runtime/Makefile.kmk
 +++ b/src/VBox/Runtime/Makefile.kmk
 @@ -2169,7 +2169,9 @@ endif
@@ -414,14 +499,17 @@ index b3eb641754..538c40da90 100644
  VBoxRT-x86_SOURCES.win = $(filter-out %.def %.rc,$(VBoxRT_SOURCES.win)) \
  	$(VBoxRT-x86_0_OUTDIR)/VBoxRT-x86.def
 diff --git a/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def b/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
-index 563562ced2..19283657e5 100644
+index 563562ced..d1d9c7ff0 100644
 --- a/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
 +++ b/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
-@@ -205,6 +205,7 @@
-     X509_VERIFY_PARAM_free
+@@ -206,6 +206,10 @@
      X509_VERIFY_PARAM_new
      X509_VERIFY_PARAM_set_flags
-+    X509_STORE_set_flags
      X509V3_conf_free
++    OpenSSL_version_num
++    DH_generate_parameters_ex
++    DH_new
++    ASN1_STRING_get0_data
  
      ; tstRTBigNum.cpp
+     BN_div

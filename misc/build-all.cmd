@@ -45,18 +45,18 @@ echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 if NOT ".%WIN10_MS_SIGN%" == ".0" (
 	echo echo ### Signing 64-bit drivers for Windows 10>> build-tmp.cmd
 	echo cd %WORKING_DIR%out\win.amd64\release\repack>> build-tmp.cmd
-	echo PackDriversForSubmission.cmd -x>> build-tmp.cmd
+	echo call PackDriversForSubmission.cmd -x>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 	echo set KBUILD_DEVTOOLS=%WORKING_DIR%tools>> build-tmp.cmd
 	echo set KBUILD_BIN_PATH=%WORKING_DIR%kBuild\bin\win.amd64>> build-tmp.cmd
 	echo set _MY_SIGNTOOL=%VBOX_PATH_SIGN_TOOLS%\signtool.exe>> build-tmp.cmd
 	echo set SRC_FILE=VBoxDrivers-%VERSION_CAB%-amd64.cab>> build-tmp.cmd
 	echo set DST_FILE=VBoxDrivers-%VERSION_CAB%-amd64-mssigned.zip>> build-tmp.cmd
-	echo sign-dual.cmd %%SRC_FILE%%>> build-tmp.cmd
+	echo call sign-dual.cmd %%SRC_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-	echo python %WORKING_DIR%sign-ms.py %%SRC_FILE%% %%DST_FILE%%>> build-tmp.cmd
+	echo python %WORKING_DIR%sign_ms.py %%SRC_FILE%% %%DST_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-	echo UnpackBlessedDrivers.cmd -n -i %%DST_FILE%%>> build-tmp.cmd
+	echo call UnpackBlessedDrivers.cmd -n -i %%DST_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 	echo set KBUILD_DEVTOOLS=>> build-tmp.cmd
 	echo set KBUILD_BIN_PATH=>> build-tmp.cmd
@@ -89,18 +89,18 @@ echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 if NOT ".%WIN10_MS_SIGN%" == ".0" (
 	echo echo ### Signing 32-bit drivers for Windows 10>> build-tmp.cmd
 	echo cd %WORKING_DIR%out\win.x86\release\repack>> build-tmp.cmd
-	echo PackDriversForSubmission.cmd -x>> build-tmp.cmd
+	echo call PackDriversForSubmission.cmd -x>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 	echo set KBUILD_DEVTOOLS=%WORKING_DIR%tools>> build-tmp.cmd
 	echo set KBUILD_BIN_PATH=%WORKING_DIR%kBuild\bin\win.x86>> build-tmp.cmd
 	echo set _MY_SIGNTOOL=%VBOX_PATH_SIGN_TOOLS%\signtool.exe>> build-tmp.cmd
 	echo set SRC_FILE=VBoxDrivers-%VERSION_CAB%-x86.cab>> build-tmp.cmd
 	echo set DST_FILE=VBoxDrivers-%VERSION_CAB%-x86-mssigned.zip>> build-tmp.cmd
-	echo sign-dual.cmd %%SRC_FILE%%>> build-tmp.cmd
+	echo call sign-dual.cmd %%SRC_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-	echo python %WORKING_DIR%sign-ms.py %%SRC_FILE%% %%DST_FILE%%>> build-tmp.cmd
+	echo python %WORKING_DIR%sign_ms.py %%SRC_FILE%% %%DST_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
-	echo UnpackBlessedDrivers.cmd -n -i %%DST_FILE%%>> build-tmp.cmd
+	echo call UnpackBlessedDrivers.cmd -n -i %%DST_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 	echo set KBUILD_DEVTOOLS=>> build-tmp.cmd
 	echo set KBUILD_BIN_PATH=>> build-tmp.cmd
