@@ -1,6 +1,7 @@
 @echo off
 
-set WORKING_DIR=%~dp0
+rem Make sure we have uppercase disk letter
+for /f "usebackq" %%i in (`perl -we "print '%~dp0\'=~s/^[a-z]:/\U$&/r;"`) do set WORKING_DIR=%%i
 set WORKING_DIR_NIX=%WORKING_DIR:\=/%
 cd /d %WORKING_DIR%
 if ERRORLEVEL 1 exit /b 1
@@ -8,7 +9,9 @@ if ERRORLEVEL 1 exit /b 1
 for /f "tokens=3" %%i in ('findstr /B /R /C:"VBOX_VERSION_MAJOR *=" Version.kmk') do SET VBOX_VER_MJ=%%i
 for /f "tokens=3" %%i in ('findstr /B /R /C:"VBOX_VERSION_MINOR *=" Version.kmk') do SET VBOX_VER_MN=%%i
 for /f "tokens=3" %%i in ('findstr /B /R /C:"VBOX_VERSION_BUILD *=" Version.kmk') do SET VBOX_VER_BLD=%%i
-for /f "tokens=6" %%i in ('findstr /C:"$Rev: " Config.kmk') do SET VBOX_REV=%%i
+for /f "tokens=6" %%i in ('findstr /C:"$Rev: " Config.kmk') do SET VBOX_REV_CFG=%%i
+for /f "tokens=6" %%i in ('findstr /C:"$Rev: " Version.kmk') do SET VBOX_REV_VER=%%i
+if %VBOX_REV_CFG% gtr %VBOX_REV_VER% (SET VBOX_REV=%VBOX_REV_CFG%) else (SET VBOX_REV=%VBOX_REV_VER%)
 
 rem Hardcode for when there are several local configs that include the same common part
 if exist LocalConfig-common.kmk for /f "tokens=3" %%i in ('findstr /B /C:"VBOX_BUILD_PUBLISHER :=" LocalConfig-common.kmk') do SET VBOX_VER_PUB=%%i
@@ -44,13 +47,13 @@ echo kmk>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 if NOT ".%WIN10_MS_SIGN%" == ".0" (
 	echo echo ### Signing 64-bit drivers for Windows 10>> build-tmp.cmd
+	echo set SRC_FILE=VBoxDrivers-%VERSION_CAB%-amd64.cab>> build-tmp.cmd
 	echo cd %WORKING_DIR%out\win.amd64\release\repack>> build-tmp.cmd
-	echo call PackDriversForSubmission.cmd -x>> build-tmp.cmd
+	echo call PackDriversForSubmission.cmd -x -a amd64 -o %%SRC_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 	echo set KBUILD_DEVTOOLS=%WORKING_DIR%tools>> build-tmp.cmd
 	echo set KBUILD_BIN_PATH=%WORKING_DIR%kBuild\bin\win.amd64>> build-tmp.cmd
 	echo set _MY_SIGNTOOL=%VBOX_PATH_SIGN_TOOLS%\signtool.exe>> build-tmp.cmd
-	echo set SRC_FILE=VBoxDrivers-%VERSION_CAB%-amd64.cab>> build-tmp.cmd
 	echo set DST_FILE=VBoxDrivers-%VERSION_CAB%-amd64-mssigned.zip>> build-tmp.cmd
 	echo call sign-dual.cmd %%SRC_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
@@ -88,13 +91,13 @@ echo kmk>> build-tmp.cmd
 echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 if NOT ".%WIN10_MS_SIGN%" == ".0" (
 	echo echo ### Signing 32-bit drivers for Windows 10>> build-tmp.cmd
+	echo set SRC_FILE=VBoxDrivers-%VERSION_CAB%-x86.cab>> build-tmp.cmd
 	echo cd %WORKING_DIR%out\win.x86\release\repack>> build-tmp.cmd
-	echo call PackDriversForSubmission.cmd -x>> build-tmp.cmd
+	echo call PackDriversForSubmission.cmd -x -a x86 -o %%SRC_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd
 	echo set KBUILD_DEVTOOLS=%WORKING_DIR%tools>> build-tmp.cmd
 	echo set KBUILD_BIN_PATH=%WORKING_DIR%kBuild\bin\win.x86>> build-tmp.cmd
 	echo set _MY_SIGNTOOL=%VBOX_PATH_SIGN_TOOLS%\signtool.exe>> build-tmp.cmd
-	echo set SRC_FILE=VBoxDrivers-%VERSION_CAB%-x86.cab>> build-tmp.cmd
 	echo set DST_FILE=VBoxDrivers-%VERSION_CAB%-x86-mssigned.zip>> build-tmp.cmd
 	echo call sign-dual.cmd %%SRC_FILE%%>> build-tmp.cmd
 	echo if ERRORLEVEL 1 exit /b ^1>> build-tmp.cmd

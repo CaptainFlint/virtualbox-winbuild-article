@@ -1,8 +1,26 @@
 diff --git a/Config.kmk b/Config.kmk
-index 7222ec007..4d554fa6d 100644
+index bb1165777d..d93c975fa7 100644
 --- a/Config.kmk
 +++ b/Config.kmk
-@@ -3866,6 +3866,12 @@ if defined(VBOX_SIGNING_MODE) && "$(KBUILD_TARGET)" == "win"
+@@ -3923,7 +3923,7 @@ VBOX_EDIT_INF32_FN = $(SED) $(if $(VBOX_SIGNING_MODE),-e 's/^;cat  *//', -e '/^;
+ 	-e '/^;amd64 /d' \
+ 	-e 's/@DOT-NT-ARCH@//' \
+ 	-e 's/@COMMA-NT-ARCH@//' \
+-	-e 's/^;edit-DriverVer.*/DriverVer = $(date-utc %m\/%d\/%Y),$(VBOX_VERSION_MAJOR).$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) ; r$(VBOX_SVN_REV)/' \
++	-e 's/^;edit-DriverVer.*/DriverVer = $(date-utc %m\/%d\/%Y),$(VBOX_VERSION_MAJOR).$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD).0 ; r$(VBOX_SVN_REV)/' \
+ 	--output $(2) \
+ 	$(1)
+ ## Edit an inf file an x86 target.
+@@ -3935,7 +3935,7 @@ VBOX_EDIT_INF64_FN = $(SED) \
+ 	-e '/^;x86 /d' \
+ 	-e 's/@DOT-NT-ARCH@/.ntamd64/' \
+ 	-e 's/@COMMA-NT-ARCH@/,ntamd64/' \
+-	-e 's/^;edit-DriverVer.*/DriverVer = $(date-utc %m\/%d\/%Y),$(VBOX_VERSION_MAJOR).$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) ; r$(VBOX_SVN_REV)/' \
++	-e 's/^;edit-DriverVer.*/DriverVer = $(date-utc %m\/%d\/%Y),$(VBOX_VERSION_MAJOR).$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD).0 ; r$(VBOX_SVN_REV)/' \
+ 	--output $(2) \
+ 	$(1)
+ 
+@@ -3957,6 +3957,12 @@ if defined(VBOX_SIGNING_MODE) && "$(KBUILD_TARGET)" == "win"
  	$(evalcall VBOX_RE_SIGN_DLL_INTERNAL_FN,$1,$2,$3)\
  	,)$($(1)_0_OUTDIR)/$(3)$(notdir $2)
  
@@ -15,7 +33,7 @@ index 7222ec007..4d554fa6d 100644
  define VBOX_RE_SIGN_DLL_INTERNAL_FN
  local n = $(3)$(notdir $2)
  ifndef $(1)_VBOX_RE_SIGNED_$(n)
-@@ -3876,7 +3882,7 @@ ifndef $(1)_VBOX_RE_SIGNED_$(n)
+@@ -3967,7 +3973,7 @@ ifndef $(1)_VBOX_RE_SIGNED_$(n)
  	$(call MSG_TOOL,SIGNTOOL,,$<,$@)
  	$(RM) -f -- "$@"
  	$(CP) -- "$<" "$@"
@@ -24,7 +42,7 @@ index 7222ec007..4d554fa6d 100644
  		/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
  		"$@"
  	$(call VBOX_SIGN_IMAGE_FN,$@)
-@@ -4235,7 +4241,7 @@ ifdef VBOX_WITH_RAW_MODE
+@@ -4336,7 +4342,7 @@ ifdef VBOX_WITH_RAW_MODE
    	-Driver -Subsystem:NATIVE -Incremental:NO -Align:64 -MapInfo:Exports -NoD $(VBOX_VCC_LD_WERR) -Release -Debug -Opt:Ref -Opt:Icf \
    	-Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
    	-Stub:$(PATH_ROOT)/src/VBox/HostDrivers/Support/win/winstub.com
@@ -33,7 +51,7 @@ index 7222ec007..4d554fa6d 100644
     TEMPLATE_VBoxRc_LDFLAGS          += -IntegrityCheck
    endif
    TEMPLATE_VBoxRc_LIBS               = \
-@@ -4380,7 +4386,7 @@ TEMPLATE_VBoxR0_LDFLAGS             = -Ignore:4197 \
+@@ -4481,7 +4487,7 @@ TEMPLATE_VBoxR0_LDFLAGS             = -Ignore:4197 \
   ifdef VBOX_WITH_DTRACE_R0
  TEMPLATE_VBoxR0_LDFLAGS            += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -42,7 +60,7 @@ index 7222ec007..4d554fa6d 100644
    TEMPLATE_VBoxR0_LDFLAGS          += -IntegrityCheck
   endif
  TEMPLATE_VBoxR0_LIBS                = \
-@@ -4508,7 +4514,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -4611,7 +4617,7 @@ ifeq ($(KBUILD_TARGET),win)
   ifdef VBOX_WITH_DTRACE_R0DRV
    TEMPLATE_VBOXR0DRV_LDFLAGS          += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -51,7 +69,7 @@ index 7222ec007..4d554fa6d 100644
    TEMPLATE_VBOXR0DRV_LDFLAGS          += -IntegrityCheck
   endif
   TEMPLATE_VBOXR0DRV_ORDERDEPS          = $(VBOX_SIGN_DRIVER_ORDERDEPS)
-@@ -5029,7 +5035,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -5132,7 +5138,7 @@ ifeq ($(KBUILD_TARGET),win)
   ifdef VBOX_WITH_DTRACE_R3
    TEMPLATE_VBOXR3EXE_LDFLAGS          += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -60,7 +78,7 @@ index 7222ec007..4d554fa6d 100644
     TEMPLATE_VBOXR3EXE_LDFLAGS         += -IntegrityCheck
   endif
  
-@@ -5943,7 +5949,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -6044,7 +6050,7 @@ ifeq ($(KBUILD_TARGET),win)
  	/DISALLOWLIB:libcmtd.lib \
  	/DISALLOWLIB:msvcrt$(VBOX_VCC_CRT_TYPE_N).lib \
  	/DISALLOWLIB:msvcprt$(VBOX_VCC_CRT_TYPE_N).lib
@@ -69,7 +87,7 @@ index 7222ec007..4d554fa6d 100644
    TEMPLATE_VBOXMAINEXE_LDFLAGS          += -IntegrityCheck
   endif
   ifdef VBOX_WITH_DTRACE_R3_MAIN
-@@ -6527,7 +6533,7 @@ ifdef VBOX_WITH_QTGUI
+@@ -6634,7 +6640,7 @@ ifdef VBOX_WITH_QTGUI
  	/NOD /INCREMENTAL:NO /MAPINFO:EXPORTS /LargeAddressAware /DynamicBase /NxCompat /Release /Debug /Opt:Ref /Opt:Icf \
  	/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
  	/STUB:$(PATH_ROOT)/src/VBox/HostDrivers/Support/win/winstub.com
@@ -79,7 +97,7 @@ index 7222ec007..4d554fa6d 100644
    endif
    TEMPLATE_VBOXQTGUIEXE_SDKS += $(VBOX_WINPSDK)
 diff --git a/configure.vbs b/configure.vbs
-index a816231bf..2c023db1b 100644
+index a816231bf0..2c023db1b3 100644
 --- a/configure.vbs
 +++ b/configure.vbs
 @@ -1095,7 +1095,7 @@ sub CheckForVisualCPP(strOptVC, strOptVCCommon, blnOptVCExpressEdition)
@@ -293,7 +311,7 @@ index a816231bf..2c023db1b 100644
        EnvPrint "call " & g_strPathDev & "/env.cmd %1 %2 %3 %4 %5 %6 %7 %8 %9"
     end if
 diff --git a/doc/manual/Config.kmk b/doc/manual/Config.kmk
-index 5ded41873..40afaed8d 100644
+index 5ded41873a..40afaed8df 100644
 --- a/doc/manual/Config.kmk
 +++ b/doc/manual/Config.kmk
 @@ -145,6 +145,9 @@ ifdef VBOX_XML_CATALOG
@@ -360,11 +378,11 @@ index 5ded41873..40afaed8d 100644
  
  endif # VBOX_XML_CATALOG
 diff --git a/doc/manual/Makefile.kmk b/doc/manual/Makefile.kmk
-index 87d03c560..3ff5eaeaa 100644
+index 750eba9376..66e36e7583 100644
 --- a/doc/manual/Makefile.kmk
 +++ b/doc/manual/Makefile.kmk
 @@ -390,6 +390,7 @@ $$(VBOX_PATH_MANUAL_OUTBASE)/$(1)/user_$(2): $(3) \
- 		$$(VBOX_VERSION_STAMP) | $$(dir $$@)
+ 		$$(VBOX_VERSION_STAMP) | $$$$(dir $$$$@)
  	$$(call MSG_TOOL,xsltproc $$(notdir $$(filter %.xsl,$$^)),,$$(filter %.xml,$$^),$$@)
  	$$(QUIET)$$(RM) -f "$$@"
 +	$$(QUIET)$$(MKDIR) -p "$$(@D)"
@@ -372,7 +390,7 @@ index 87d03c560..3ff5eaeaa 100644
  endef
  $(foreach lang,$(VBOX_MANUAL_LANGUAGES),$(foreach file,$(VBOX_MANUAL_XML_REFENTRY_FILES) \
 diff --git a/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd b/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd
-index c8f54920a..803df7a89 100644
+index 7198801696..9ef3e17645 100644
 --- a/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd
 +++ b/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd
 @@ -151,15 +151,15 @@ goto end_failed
@@ -413,7 +431,7 @@ index c8f54920a..803df7a89 100644
  echo .\VBoxExtPackPuel.inf VBoxExtPackPuel.inf>>                                        "%_MY_OPT_DDF_FILE%"
  echo %_MY_EXTPACK_DIR%\win.%_MY_OPT_ARCH%\VBoxEhciR0.r0 VBoxEhciR0.r0>>                 "%_MY_OPT_DDF_FILE%"
 diff --git a/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd b/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd
-index 68192243f..e5fafa383 100644
+index 68192243fb..e5fafa383d 100644
 --- a/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd
 +++ b/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd
 @@ -25,9 +25,6 @@ rem Globals and Check for environment variables we need.
@@ -457,7 +475,7 @@ index 68192243f..e5fafa383 100644
  
  for %%d in (%_MY_DRIVER_BASE_NAMES%) do (
 diff --git a/src/VBox/Makefile.kmk b/src/VBox/Makefile.kmk
-index 6e792e662..2e4b1b5ab 100644
+index 6e792e662f..2e4b1b5ab5 100644
 --- a/src/VBox/Makefile.kmk
 +++ b/src/VBox/Makefile.kmk
 @@ -91,6 +91,11 @@ else
@@ -473,10 +491,10 @@ index 6e792e662..2e4b1b5ab 100644
    include $(PATH_SUB_CURRENT)/ValidationKit/Makefile.kmk
   endif
 diff --git a/src/VBox/Runtime/Makefile.kmk b/src/VBox/Runtime/Makefile.kmk
-index b3eb64175..538c40da9 100644
+index 4a19fc2d7d..0015b2d6b9 100644
 --- a/src/VBox/Runtime/Makefile.kmk
 +++ b/src/VBox/Runtime/Makefile.kmk
-@@ -2169,7 +2169,9 @@ endif
+@@ -2209,7 +2209,9 @@ endif
  VBoxRT_LIBS.win                = \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/vccomsup.lib \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/wbemuuid.lib \
@@ -487,7 +505,7 @@ index b3eb64175..538c40da9 100644
  VBoxRT_LDFLAGS.darwin          = \
  	-framework IOKit \
  	-framework CoreFoundation \
-@@ -2314,7 +2316,9 @@ endif
+@@ -2352,7 +2354,9 @@ endif
  VBoxRT-x86_LIBS.win                = \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/vccomsup.lib \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/wbemuuid.lib \
@@ -499,7 +517,7 @@ index b3eb64175..538c40da9 100644
  VBoxRT-x86_SOURCES.win = $(filter-out %.def %.rc,$(VBoxRT_SOURCES.win)) \
  	$(VBoxRT-x86_0_OUTDIR)/VBoxRT-x86.def
 diff --git a/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def b/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
-index 563562ced..d1d9c7ff0 100644
+index 563562ced2..d1d9c7ff07 100644
 --- a/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
 +++ b/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
 @@ -206,6 +206,10 @@
