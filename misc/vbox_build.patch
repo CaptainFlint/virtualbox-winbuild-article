@@ -1,26 +1,8 @@
 diff --git a/Config.kmk b/Config.kmk
-index bb1165777d..d93c975fa7 100644
+index 3a83ab8392..a9e15225ae 100644
 --- a/Config.kmk
 +++ b/Config.kmk
-@@ -3923,7 +3923,7 @@ VBOX_EDIT_INF32_FN = $(SED) $(if $(VBOX_SIGNING_MODE),-e 's/^;cat  *//', -e '/^;
- 	-e '/^;amd64 /d' \
- 	-e 's/@DOT-NT-ARCH@//' \
- 	-e 's/@COMMA-NT-ARCH@//' \
--	-e 's/^;edit-DriverVer.*/DriverVer = $(date-utc %m\/%d\/%Y),$(VBOX_VERSION_MAJOR).$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) ; r$(VBOX_SVN_REV)/' \
-+	-e 's/^;edit-DriverVer.*/DriverVer = $(date-utc %m\/%d\/%Y),$(VBOX_VERSION_MAJOR).$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD).0 ; r$(VBOX_SVN_REV)/' \
- 	--output $(2) \
- 	$(1)
- ## Edit an inf file an x86 target.
-@@ -3935,7 +3935,7 @@ VBOX_EDIT_INF64_FN = $(SED) \
- 	-e '/^;x86 /d' \
- 	-e 's/@DOT-NT-ARCH@/.ntamd64/' \
- 	-e 's/@COMMA-NT-ARCH@/,ntamd64/' \
--	-e 's/^;edit-DriverVer.*/DriverVer = $(date-utc %m\/%d\/%Y),$(VBOX_VERSION_MAJOR).$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) ; r$(VBOX_SVN_REV)/' \
-+	-e 's/^;edit-DriverVer.*/DriverVer = $(date-utc %m\/%d\/%Y),$(VBOX_VERSION_MAJOR).$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD).0 ; r$(VBOX_SVN_REV)/' \
- 	--output $(2) \
- 	$(1)
- 
-@@ -3957,6 +3957,12 @@ if defined(VBOX_SIGNING_MODE) && "$(KBUILD_TARGET)" == "win"
+@@ -3913,6 +3913,12 @@ if defined(VBOX_SIGNING_MODE) && "$(KBUILD_TARGET)" == "win"
  	$(evalcall VBOX_RE_SIGN_DLL_INTERNAL_FN,$1,$2,$3)\
  	,)$($(1)_0_OUTDIR)/$(3)$(notdir $2)
  
@@ -33,7 +15,7 @@ index bb1165777d..d93c975fa7 100644
  define VBOX_RE_SIGN_DLL_INTERNAL_FN
  local n = $(3)$(notdir $2)
  ifndef $(1)_VBOX_RE_SIGNED_$(n)
-@@ -3967,7 +3973,7 @@ ifndef $(1)_VBOX_RE_SIGNED_$(n)
+@@ -3923,7 +3929,7 @@ ifndef $(1)_VBOX_RE_SIGNED_$(n)
  	$(call MSG_TOOL,SIGNTOOL,,$<,$@)
  	$(RM) -f -- "$@"
  	$(CP) -- "$<" "$@"
@@ -42,7 +24,7 @@ index bb1165777d..d93c975fa7 100644
  		/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
  		"$@"
  	$(call VBOX_SIGN_IMAGE_FN,$@)
-@@ -4336,7 +4342,7 @@ ifdef VBOX_WITH_RAW_MODE
+@@ -4313,7 +4319,7 @@ ifdef VBOX_WITH_RAW_MODE
    	-Driver -Subsystem:NATIVE -Incremental:NO -Align:64 -MapInfo:Exports -NoD $(VBOX_VCC_LD_WERR) -Release -Debug -Opt:Ref -Opt:Icf \
    	-Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
    	-Stub:$(PATH_ROOT)/src/VBox/HostDrivers/Support/win/winstub.com
@@ -51,7 +33,7 @@ index bb1165777d..d93c975fa7 100644
     TEMPLATE_VBoxRc_LDFLAGS          += -IntegrityCheck
    endif
    TEMPLATE_VBoxRc_LIBS               = \
-@@ -4481,7 +4487,7 @@ TEMPLATE_VBoxR0_LDFLAGS             = -Ignore:4197 \
+@@ -4458,7 +4464,7 @@ TEMPLATE_VBoxR0_LDFLAGS             = -Ignore:4197 \
   ifdef VBOX_WITH_DTRACE_R0
  TEMPLATE_VBoxR0_LDFLAGS            += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -60,7 +42,7 @@ index bb1165777d..d93c975fa7 100644
    TEMPLATE_VBoxR0_LDFLAGS          += -IntegrityCheck
   endif
  TEMPLATE_VBoxR0_LIBS                = \
-@@ -4611,7 +4617,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -4606,7 +4612,7 @@ ifeq ($(KBUILD_TARGET),win)
   ifdef VBOX_WITH_DTRACE_R0DRV
    TEMPLATE_VBOXR0DRV_LDFLAGS          += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -69,7 +51,7 @@ index bb1165777d..d93c975fa7 100644
    TEMPLATE_VBOXR0DRV_LDFLAGS          += -IntegrityCheck
   endif
   TEMPLATE_VBOXR0DRV_ORDERDEPS          = $(VBOX_SIGN_DRIVER_ORDERDEPS)
-@@ -5132,7 +5138,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -5133,7 +5139,7 @@ ifeq ($(KBUILD_TARGET),win)
   ifdef VBOX_WITH_DTRACE_R3
    TEMPLATE_VBOXR3EXE_LDFLAGS          += -Merge:VTGPrLc.Data=VTGPrLc.Begin -Merge:VTGPrLc.End=VTGPrLc.Begin -Merge:VTGPrLc.Begin=VTGObj
   endif
@@ -78,7 +60,7 @@ index bb1165777d..d93c975fa7 100644
     TEMPLATE_VBOXR3EXE_LDFLAGS         += -IntegrityCheck
   endif
  
-@@ -6044,7 +6050,7 @@ ifeq ($(KBUILD_TARGET),win)
+@@ -6045,7 +6051,7 @@ ifeq ($(KBUILD_TARGET),win)
  	/DISALLOWLIB:libcmtd.lib \
  	/DISALLOWLIB:msvcrt$(VBOX_VCC_CRT_TYPE_N).lib \
  	/DISALLOWLIB:msvcprt$(VBOX_VCC_CRT_TYPE_N).lib
@@ -87,7 +69,7 @@ index bb1165777d..d93c975fa7 100644
    TEMPLATE_VBOXMAINEXE_LDFLAGS          += -IntegrityCheck
   endif
   ifdef VBOX_WITH_DTRACE_R3_MAIN
-@@ -6634,7 +6640,7 @@ ifdef VBOX_WITH_QTGUI
+@@ -6637,7 +6643,7 @@ ifdef VBOX_WITH_QTGUI
  	/NOD /INCREMENTAL:NO /MAPINFO:EXPORTS /LargeAddressAware /DynamicBase /NxCompat /Release /Debug /Opt:Ref /Opt:Icf \
  	/Version:$(VBOX_VERSION_MAJOR)0$(VBOX_VERSION_MINOR).$(VBOX_VERSION_BUILD) \
  	/STUB:$(PATH_ROOT)/src/VBox/HostDrivers/Support/win/winstub.com
@@ -97,7 +79,7 @@ index bb1165777d..d93c975fa7 100644
    endif
    TEMPLATE_VBOXQTGUIEXE_SDKS += $(VBOX_WINPSDK)
 diff --git a/configure.vbs b/configure.vbs
-index a816231bf0..2c023db1b3 100644
+index b7620c7c4d..ecbe36099d 100644
 --- a/configure.vbs
 +++ b/configure.vbs
 @@ -1095,7 +1095,7 @@ sub CheckForVisualCPP(strOptVC, strOptVCCommon, blnOptVCExpressEdition)
@@ -109,71 +91,7 @@ index a816231bf0..2c023db1b3 100644
        MsgError "Executing '" & strClExe & "' (which we believe to be the Visual C++ compiler driver) failed."
        exit sub
     end if
-@@ -1512,41 +1512,38 @@ function CheckForMinGW32Sub(strPathMingW32, strPathW32API)
-    if strPathW32API = "" then strPathW32API = strPathMingW32
-    LogPrint "trying: strPathMingW32="  &strPathMingW32 & " strPathW32API=" & strPathW32API
- 
--   if   LogFileExists(strPathMingW32, "bin/mingw32-gcc.exe") _
-+   if   LogFileExists(strPathMingW32, "bin/gcc.exe") _
-     And LogFileExists(strPathMingW32, "bin/ld.exe") _
-     And LogFileExists(strPathMingW32, "bin/objdump.exe") _
-     And LogFileExists(strPathMingW32, "bin/dllwrap.exe") _
-+    And LogFileExists(strPathMingW32, "bin/dlltool.exe") _
-     And LogFileExists(strPathMingW32, "bin/as.exe") _
--    And LogFileExists(strPathMingW32, "include/string.h") _
--    And LogFileExists(strPathMingW32, "include/_mingw.h") _
--    And LogFileExists(strPathMingW32, "lib/dllcrt1.o") _
--    And LogFileExists(strPathMingW32, "lib/dllcrt2.o") _
--    And LogFileExists(strPathMingW32, "lib/libmsvcrt.a") _
--    _
--    And LogFileExists(strPathW32API, "lib/libkernel32.a") _
--    And LogFileExists(strPathW32API, "include/windows.h") _
-+    And LogFileExists(strPathMingW32, "include/bfd.h") _
-+    And LogFileExists(strPathMingW32, "lib32/libgcc_s.a") _
-+    And LogFileExists(strPathMingW32, "i686-w64-mingw32/lib/dllcrt1.o") _
-+    And LogFileExists(strPathMingW32, "i686-w64-mingw32/lib/dllcrt2.o") _
-+    And LogFileExists(strPathMingW32, "i686-w64-mingw32/lib/libmsvcrt.a") _
-+    And LogFileExists(strPathMingW32, "i686-w64-mingw32/lib/libmsvcr100.a") _
-+    And LogFileExists(strPathMingW32, "i686-w64-mingw32/include/_mingw.h") _
-+    And LogFileExists(strPathMingW32, "i686-w64-mingw32/include/stdint.h") _
-+    And LogFileExists(strPathMingW32, "i686-w64-mingw32/include/windows.h") _
-       then
--      if Shell(DosSlashes(strPathMingW32 & "/bin/gcc.exe") & " --version", True) = 0 then
-+      if Shell(DosSlashes(strPathMingW32 & "/bin/gcc.exe") & " -dumpversion", True) = 0 then
-          dim offVer, iMajor, iMinor, iPatch, strVer
- 
-          ' extract the version.
--         strVer = ""
--         offVer = InStr(1, g_strShellOutput, "(GCC) ")
--         if offVer > 0 then
--            strVer = LTrim(Mid(g_strShellOutput, offVer + Len("(GCC) ")))
--            strVer = RTrim(Left(strVer, InStr(1, strVer, " ")))
--            if   (Mid(strVer, 2, 1) = ".") _
--             And (Mid(strVer, 4, 1) = ".") then
--               iMajor = Int(Left(strVer, 1)) ' Is Int() the right thing here? I want atoi()!!!
--               iMinor = Int(Mid(strVer, 3, 1))
--               iPatch = Int(Mid(strVer, 5))
--            else
--               LogPrint "Malformed version: '" & strVer & "'"
--               strVer = ""
--            end if
-+         strVer = Trim(Replace(Replace(g_strShellOutput, vbCr, ""), vbLf, ""))
-+         if   (Mid(strVer, 2, 1) = ".") _
-+          And (Mid(strVer, 4, 1) = ".") then
-+            iMajor = Int(Left(strVer, 1)) ' Is Int() the right thing here? I want atoi()!!!
-+            iMinor = Int(Mid(strVer, 3, 1))
-+            iPatch = Int(Mid(strVer, 5))
-+         else
-+            LogPrint "Malformed version: '" & strVer & "'"
-+            strVer = ""
-          end if
-          if strVer <> "" then
--            if (iMajor = 3) And (iMinor = 3) then
-+            if (iMajor = 4) And (iMinor >= 4) then
-                CheckForMinGW32Sub = True
-                g_strSubOutput = strVer
-             else
-@@ -1986,7 +1983,6 @@ function CheckForCurlSub(strPathCurl)
+@@ -1986,7 +1986,6 @@ function CheckForCurlSub(strPathCurl)
     CheckForCurlSub = False
     LogPrint "trying: strPathCurl=" & strPathCurl
     if   LogFileExists(strPathCurl, "include/curl/curl.h") _
@@ -181,7 +99,7 @@ index a816231bf0..2c023db1b3 100644
      And LogFindFile(strPathCurl, "libcurl.lib") <> "" _
        then
           CheckForCurlSub = True
-@@ -1995,6 +1991,80 @@ end function
+@@ -1995,6 +1994,80 @@ end function
  
  
  
@@ -262,7 +180,7 @@ index a816231bf0..2c023db1b3 100644
  ''
  ' Checks for any Qt5 binaries.
  sub CheckForQt(strOptQt5)
-@@ -2069,7 +2139,7 @@ function CheckForPython(strPathPython)
+@@ -2069,7 +2142,7 @@ function CheckForPython(strPathPython)
     LogPrint "trying: strPathPython=" & strPathPython
  
     if LogFileExists(strPathPython, "python.exe") then
@@ -271,28 +189,28 @@ index a816231bf0..2c023db1b3 100644
        CheckForPython = True
     end if
  
-@@ -2132,6 +2202,8 @@ sub usage
+@@ -2111,6 +2184,8 @@ sub usage
+    Print "  --with-libcurl=PATH   "
     Print "  --with-libcurl32=PATH (only for 64-bit targets)"
     Print "  --with-python=PATH    "
-    Print "  --with-mkisofs=PATH   "
 +   Print "  --with-libvpx=PATH    "
 +   Print "  --with-libopus=PATH   "
  end sub
  
  
-@@ -2170,6 +2242,8 @@ Sub Main
+@@ -2148,6 +2223,8 @@ Sub Main
+    strOptCurl = ""
     strOptCurl32 = ""
     strOptPython = ""
-    strOptMkisofs = ""
 +   strOptVpx = ""
 +   strOptOpus = ""
     blnOptDisableCOM = False
     blnOptDisableUDPTunnel = False
     blnOptDisableSDL = False
-@@ -2227,6 +2301,10 @@ Sub Main
+@@ -2203,6 +2280,10 @@ Sub Main
+             strOptCurl32 = strPath
+          case "--with-python"
              strOptPython = strPath
-          case "--with-mkisofs"
-             strOptMkisofs = strPath
 +         case "--with-libvpx"
 +            strOptVpx = strPath
 +         case "--with-libopus"
@@ -300,9 +218,9 @@ index a816231bf0..2c023db1b3 100644
           case "--disable-com"
              blnOptDisableCOM = True
           case "--enable-com"
-@@ -2319,6 +2397,9 @@ Sub Main
-    if (strOptMkisofs <> "") then
-      CheckForMkisofs strOptMkisofs
+@@ -2292,6 +2373,9 @@ Sub Main
+    if (strOptPython <> "") then
+      CheckForPython strOptPython
     end if
 +   CheckForVpx strOptVpx
 +   CheckForOpus strOptOpus
@@ -311,10 +229,10 @@ index a816231bf0..2c023db1b3 100644
        EnvPrint "call " & g_strPathDev & "/env.cmd %1 %2 %3 %4 %5 %6 %7 %8 %9"
     end if
 diff --git a/doc/manual/Config.kmk b/doc/manual/Config.kmk
-index 5ded41873a..40afaed8df 100644
+index befee545a4..bccfbac6bc 100644
 --- a/doc/manual/Config.kmk
 +++ b/doc/manual/Config.kmk
-@@ -145,6 +145,9 @@ ifdef VBOX_XML_CATALOG
+@@ -192,6 +192,9 @@ ifdef VBOX_XML_CATALOG
   # quite correctly with file:////, doing incorrect filename transformations)
   # and on Windows (where the absolute path starts with a drive letter).
   VBOX_FILE_URL_MAYBE_SLASH = $(if $(eq $(KBUILD_HOST),win),/,)
@@ -324,114 +242,70 @@ index 5ded41873a..40afaed8df 100644
   #
   # To avoid network I/O for fetching DTDs, we generate catalogs mapping the public
   # entity IDs to local files.  (Obviously, only done when we have local files.)
-@@ -161,9 +164,12 @@ ifdef VBOX_XML_CATALOG
- 		'  <delegateSystem systemIdStartString="http://www.oasis-open.org/docbook/" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/>' \
+@@ -210,9 +213,13 @@ ifdef VBOX_XML_CATALOG
  		'  <delegateURI uriStartString="http://www.oasis-open.org/docbook/"         catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/>' \
+ 		'  <delegateURI uriStartString="http://docbook.org/"                        catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_DOCBOOK)"/>' \
  		'  <delegateSystem systemIdStartString="$(VBOX_PATH_MANUAL_SRC)"            catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
 +		'  <delegateSystem systemIdStartString="$(VBOX_PATH_MANUAL_SRC_SLASHED)"    catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
+ 		'  <delegateSystem systemIdStartString="$(VBOX_PATH_MANUAL_OUTBASE)"        catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
++		'  <delegateSystem systemIdStartString="$(VBOX_PATH_MANUAL_OUTBASE_SLASHED)" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
  		'  <delegateURI uriStartString="$(VBOX_PATH_MANUAL_SRC)"                    catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
 +		'  <delegateURI uriStartString="$(VBOX_PATH_MANUAL_SRC_SLASHED)"            catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
- 		'  <delegateURI uriStartString="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
  		'  <delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE)"                catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
 +		'  <delegateURI uriStartString="$(VBOX_PATH_MANUAL_OUTBASE_SLASHED)"        catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
+ 		'  <delegateURI uriStartString="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)"     catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
+ 		'  <delegateURI uriStartString="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)" catalog="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_XML_CATALOG_MANUAL)"/>' \
  		'</catalog>'
- 
-  # Create a docbook catalog file for xsltproc that points to the local docbook files.
-@@ -211,22 +217,37 @@ ifdef VBOX_XML_CATALOG
+@@ -264,19 +271,31 @@ ifdef VBOX_XML_CATALOG
  		'<?xml version="1.0"?>' \
  		'<!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">' \
  		'<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">' \
 -		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-accessibility-en.xml"            uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/>' \
+-		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-diversity.xml"					uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-diversity.xml"/>' \
 -		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-support-en.xml"                  uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/>' \
 +		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-accessibility-en.xml"            uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/>' \
-+		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/common/oracle-accessibility-en.xml"          uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/common/oracle-accessibility-en.xml"            uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-accessibility-en.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-diversity.xml"					uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-diversity.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/common/oracle-diversity.xml"					uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-diversity.xml"/>' \
 +		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/common/oracle-support-en.xml"                  uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/>' \
-+		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/common/oracle-support-en.xml"                uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/common/oracle-support-en.xml"                  uri="$(VBOX_PATH_MANUAL_SRC)/en_US/oracle-support-en.xml"/>' \
  		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_ChangeLogImpl.xml"                  uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/user_ChangeLogImpl.xml"/>' \
 +		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_ChangeLogImpl.xml"                uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/user_ChangeLogImpl.xml"/>' \
- 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_VBoxManage_CommandsOverview.xml"    uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/user_VBoxManage_CommandsOverview.xml"/>' \
-+		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_VBoxManage_CommandsOverview.xml"  uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/user_VBoxManage_CommandsOverview.xml"/>' \
  		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/titlepage-htmlhelp.xsl"                        uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/titlepage-htmlhelp.xsl"/>' \
 +		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/titlepage-htmlhelp.xsl"                      uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/titlepage-htmlhelp.xsl"/>' \
- 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_man_VBoxManage-mediumio.xml"        uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-mediumio.xml"/>' \
-+		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_man_VBoxManage-mediumio.xml"      uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-mediumio.xml"/>' \
- 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_man_VBoxManage-debugvm.xml"         uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-debugvm.xml"/>' \
-+		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_man_VBoxManage-debugvm.xml"       uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-debugvm.xml"/>' \
- 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_man_VBoxManage-extpack.xml"         uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-extpack.xml"/>' \
-+		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_man_VBoxManage-extpack.xml"       uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-extpack.xml"/>' \
- 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_man_VBoxManage-unattended.xml"      uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-unattended.xml"/>' \
-+		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_man_VBoxManage-unattended.xml"    uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_man_VBoxManage-unattended.xml"/>' \
- 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/user_isomakercmd-man.xml"                uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_isomakercmd-man.xml"/>' \
-+		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/user_isomakercmd-man.xml"              uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/user_isomakercmd-man.xml"/>' \
+ 		$(foreach x,user_VBoxManage_CommandsOverview.xml user_isomakercmd-man.xml $(addprefix user_,$(VBOX_MANUAL_XML_REFENTRY_FILES) man_VBoxHeadless.xml man_vboximg-mount.xml)\
+-		,'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/$(x)"        uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/$(x)"/>') \
++		,'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/$(x)"         uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/$(x)"/>' \
++		,'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/$(x)" uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/$(x)"/>') \
  		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/SDKRef_apiref.xml"                       uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/SDKRef_apiref.xml"/>' \
 +		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/SDKRef_apiref.xml"                     uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/en_US/SDKRef_apiref.xml"/>' \
  		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/en_US/all-entities.ent"                        uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/all-entities.ent"/>' \
 +		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/en_US/all-entities.ent"                      uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/all-entities.ent"/>' \
- 		'  <uri name="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_SRC)/en_US/all-entities.ent" uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_MANUAL_OUTBASE)/all-entities.ent"/>' \
  		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/html/docbook.xsl"                              uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/html/docbook.xsl"/>' \
 +		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/html/docbook.xsl"                            uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/html/docbook.xsl"/>' \
  		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/html/chunk.xsl"                                uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/html/chunk.xsl"/>' \
 +		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/html/chunk.xsl"                              uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/html/chunk.xsl"/>' \
  		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/htmlhelp/htmlhelp.xsl"                         uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/htmlhelp/htmlhelp.xsl"/>' \
 +		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/htmlhelp/htmlhelp.xsl"                       uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/htmlhelp/htmlhelp.xsl"/>' \
+ 		'  <system systemId="$(VBOX_PATH_MANUAL_SRC)/manpages/docbook.xsl"                          uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/manpages/docbook.xsl"/>' \
++		'  <system systemId="$(VBOX_PATH_MANUAL_SRC_SLASHED)/manpages/docbook.xsl"                          uri="file://$(VBOX_FILE_URL_MAYBE_SLASH)$(VBOX_PATH_DOCBOOK)/manpages/docbook.xsl"/>' \
  		'</catalog>'
  
  endif # VBOX_XML_CATALOG
 diff --git a/doc/manual/Makefile.kmk b/doc/manual/Makefile.kmk
-index 750eba9376..66e36e7583 100644
+index 2b154a8a96..fc202408ed 100644
 --- a/doc/manual/Makefile.kmk
 +++ b/doc/manual/Makefile.kmk
-@@ -390,6 +390,7 @@ $$(VBOX_PATH_MANUAL_OUTBASE)/$(1)/user_$(2): $(3) \
- 		$$(VBOX_VERSION_STAMP) | $$$$(dir $$$$@)
+@@ -371,6 +371,7 @@ $$(VBOX_PATH_MANUAL_OUTBASE)/$(1)/user_$(2): $(3) \
+ 		$$(VBOX_XML_ENTITIES) $$(VBOX_VERSION_STAMP) | $$$$(dir $$$$@)
  	$$(call MSG_TOOL,xsltproc $$(notdir $$(filter %.xsl,$$^)),,$$(filter %.xml,$$^),$$@)
  	$$(QUIET)$$(RM) -f "$$@"
 +	$$(QUIET)$$(MKDIR) -p "$$(@D)"
  	$$(QUIET)$$(call VBOX_XSLTPROC_WITH_CAT) --output $$@ $$(VBOX_PATH_MANUAL_SRC)/docbook-refentry-to-manual-sect1.xsl $$<
  endef
  $(foreach lang,$(VBOX_MANUAL_LANGUAGES),$(foreach file,$(VBOX_MANUAL_XML_REFENTRY_FILES) \
-diff --git a/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd b/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd
-index 7198801696..9ef3e17645 100644
---- a/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd
-+++ b/src/VBox/Installer/win/Scripts/PackDriversForSubmission.cmd
-@@ -151,15 +151,15 @@ goto end_failed
- rem validate specified options
- if not exist "%_MY_OPT_BINDIR%"     goto error_bindir_does_not_exist
- 
--if "%_MY_OPT_WITH_PDB" == "0"       goto no_pdbdir_validation
-+if "%_MY_OPT_WITH_PDB%" == "0"       goto no_pdbdir_validation
- if ".%_MY_OPT_PDBDIR%" == "."       set _MY_OPT_PDBDIR=%_MY_OPT_BINDIR%\..\stage\debug\bin
- if not exist "%_MY_OPT_PDBDIR%"     goto error_pdbdir_does_not_exist
- :no_pdbdir_validation
- 
--if "%_MY_OPT_WITH_EXTPACK" == "0"   goto no_extpack_validation
-+if "%_MY_OPT_WITH_EXTPACK%" == "0"   goto no_extpack_validation
- if ".%_MY_OPT_EXTPACK%" == "."      set _MY_OPT_EXTPACK=%_MY_OPT_BINDIR%\Oracle_VM_VirtualBox_Extension_Pack.vbox-extpack
- if not exist "%_MY_OPT_EXTPACK%"    goto error_extpack_does_not_exist
--:no_extack_validation
-+:no_extpack_validation
- 
- if ".%_MY_OPT_OUTPUT%" == "."       set _MY_OPT_OUTPUT=VBoxDrivers-@VBOX_VERSION_STRING@r@VBOX_SVN_REV@-%_MY_OPT_ARCH%.cab
- if exist "%_MY_OPT_OUTPUT%"         goto error_output_exists
-@@ -176,7 +176,7 @@ rem Note! Modify the path a little to ensure windows utilities are used before
- rem       cygwin ones, and that we can use stuff from bin\tools if we like.
- rem
- set PATH=%SystemRoot%\System32;%PATH%;%_MY_OPT_BINDIR%
--if "%_MY_OPT_WITH_EXTPACK" == "0"   goto no_extpack_unpack
-+if "%_MY_OPT_WITH_EXTPACK%" == "0"   goto no_extpack_unpack
- set _MY_EXTPACK_DIR=%_MY_OPT_BINDIR%\ExtensionPacks\Oracle_VM_VirtualBox_Extension_Pack
- if not exist "%_MY_OPT_BINDIR%\ExtensionPacks"  ( mkdir "%_MY_OPT_BINDIR%\ExtensionPacks" || goto end_failed )
- if not exist "%_MY_EXTPACK_DIR%"                ( mkdir "%_MY_EXTPACK_DIR%" || goto end_failed )
-@@ -233,7 +233,7 @@ if "%_MY_OPT_WITH_PDB%" == "1" echo %_MY_OPT_PDBDIR%\VMMR0.pdb VMMR0.pdb>>
- echo %_MY_OPT_BINDIR%\VBoxDDR0.r0 VBoxDDR0.r0>>                                         "%_MY_OPT_DDF_FILE%"
- if "%_MY_OPT_WITH_PDB%" == "1" echo %_MY_OPT_PDBDIR%\VBoxDDR0.pdb VBoxDDR0.pdb>>        "%_MY_OPT_DDF_FILE%"
- 
--if "%_MY_OPT_WITH_EXTPACK" == "0"   goto no_extpack_ddf
-+if "%_MY_OPT_WITH_EXTPACK%" == "0"   goto no_extpack_ddf
- echo .Set DestinationDir=VBoxExtPackPuel>>                                              "%_MY_OPT_DDF_FILE%"
- echo .\VBoxExtPackPuel.inf VBoxExtPackPuel.inf>>                                        "%_MY_OPT_DDF_FILE%"
- echo %_MY_EXTPACK_DIR%\win.%_MY_OPT_ARCH%\VBoxEhciR0.r0 VBoxEhciR0.r0>>                 "%_MY_OPT_DDF_FILE%"
 diff --git a/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd b/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd
-index 68192243fb..e5fafa383d 100644
+index 8fa1305c93..41e303b9bf 100644
 --- a/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd
 +++ b/src/VBox/Installer/win/Scripts/UnpackBlessedDrivers.cmd
 @@ -25,9 +25,6 @@ rem Globals and Check for environment variables we need.
@@ -444,7 +318,7 @@ index 68192243fb..e5fafa383d 100644
  
  rem
  rem Parse arguments.
-@@ -109,16 +106,25 @@ if not exist "%_MY_OPT_INPUT%"      goto error_input_not_found
+@@ -118,17 +115,26 @@ if not exist "%_MY_OPT_INPUT%"      goto error_input_not_found
  
  rem
  rem Unpack the stuff.
@@ -466,6 +340,7 @@ index 68192243fb..e5fafa383d 100644
 +if ERRORLEVEL 1 goto end_failed
  :unzip_okay
  
+ if ".%_MY_OPT_SIGN_VERIFY%" == ".0" goto no_sign_verify
  rem
  rem Verify it against the PreW10 catalog files we saved.
  rem
@@ -475,10 +350,10 @@ index 68192243fb..e5fafa383d 100644
  
  for %%d in (%_MY_DRIVER_BASE_NAMES%) do (
 diff --git a/src/VBox/Makefile.kmk b/src/VBox/Makefile.kmk
-index 6e792e662f..2e4b1b5ab5 100644
+index 80ede29b47..e293f9b44d 100644
 --- a/src/VBox/Makefile.kmk
 +++ b/src/VBox/Makefile.kmk
-@@ -91,6 +91,11 @@ else
+@@ -95,6 +95,11 @@ else
   ifdef VBOX_WITH_ADDITIONS
    include $(PATH_SUB_CURRENT)/Additions/Makefile.kmk
   endif
@@ -491,10 +366,10 @@ index 6e792e662f..2e4b1b5ab5 100644
    include $(PATH_SUB_CURRENT)/ValidationKit/Makefile.kmk
   endif
 diff --git a/src/VBox/Runtime/Makefile.kmk b/src/VBox/Runtime/Makefile.kmk
-index 4a19fc2d7d..0015b2d6b9 100644
+index 2fd8a98173..8e02834f73 100644
 --- a/src/VBox/Runtime/Makefile.kmk
 +++ b/src/VBox/Runtime/Makefile.kmk
-@@ -2209,7 +2209,9 @@ endif
+@@ -2245,7 +2245,9 @@ endif
  VBoxRT_LIBS.win                = \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/vccomsup.lib \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/wbemuuid.lib \
@@ -505,7 +380,7 @@ index 4a19fc2d7d..0015b2d6b9 100644
  VBoxRT_LDFLAGS.darwin          = \
  	-framework IOKit \
  	-framework CoreFoundation \
-@@ -2352,7 +2354,9 @@ endif
+@@ -2388,7 +2390,9 @@ endif
  VBoxRT-x86_LIBS.win                = \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/vccomsup.lib \
  	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/wbemuuid.lib \
@@ -517,7 +392,7 @@ index 4a19fc2d7d..0015b2d6b9 100644
  VBoxRT-x86_SOURCES.win = $(filter-out %.def %.rc,$(VBoxRT_SOURCES.win)) \
  	$(VBoxRT-x86_0_OUTDIR)/VBoxRT-x86.def
 diff --git a/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def b/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
-index 563562ced2..d1d9c7ff07 100644
+index 5ac7c9a79c..6dab95f41f 100644
 --- a/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
 +++ b/src/VBox/Runtime/r3/win/VBoxRT-openssl-1.1plus.def
 @@ -206,6 +206,10 @@
