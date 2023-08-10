@@ -4,10 +4,10 @@
 <br/>
 <ru>Как известно большинству пользователей Windows-версии VirtualBox (далее — <em>VB</em>, не путать с Visual Basic), в релизе 4.3.14 разработчики этой программы добавили дополнительный механизм защиты, называемый «hardening» (что можно перевести как «упрочнение»), который привёл к многочисленным проблемам совместимости VB с антивирусами, драйверами крипто-модулей и даже отдельными обновлениями самой Windows, в результате чего виртуальные машины попросту отказываются запускаться. В лучшем случае пользователю приходится ждать около месяца, пока проблемная программа, о которой он сообщит разработчикам, окажется учтена в следующем релизе VB. В худшем случае придётся либо удалять конфликтующую программу (или системное обновление), либо откатывать VB до версии 4.3.12 — последней, в которой не было этой защиты. Многочисленные предложения к разработчикам о добавлении пользовательского списка исключений или опции, отключающей защиту целиком, остаются без внимания. Единственный внятный ответ с их стороны звучит так: «не хотите защиту — компилируйте из исходников сами». Что ж, придётся этим заняться.<br/>
 <br/>
-Несмотря на то, что процедура сборки <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">описана</a> на официальной вики, она неполна и кое в чём устарела, а сама сборка так и норовит выдать странные ошибки. Поэтому когда я всё-таки пробился до конца сей процедуры, я решил, что её описание заслуживает отдельной статьи. Инструкция время от времени обновляется и на текущий момент адаптирована для VB версии 6.1.18, но если кого-то заинтересует сборка более ранних версий VB или библиотек, информацию можно выцарапать из <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/">истории правок</a>.<br/></ru>
+Несмотря на то, что процедура сборки <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">описана</a> на официальной вики, она неполна и кое в чём устарела, а сама сборка так и норовит выдать странные ошибки. Поэтому когда я всё-таки пробился до конца сей процедуры, я решил, что её описание заслуживает отдельной статьи. Инструкция время от времени обновляется и на текущий момент адаптирована для VB версии 6.1.46, но если кого-то заинтересует сборка более ранних версий VB или библиотек, информацию можно выцарапать из <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/">истории правок</a>.<br/></ru>
 <en>It is a well-known fact to many users of the Windows version of VirtualBox (from now on, <em>VB</em>; not to be confused with Visual Basic) that starting with 4.3.14 the developers added the so-called «hardening» designed to prevent malicious injections into VB. Although the intentions were good, the implementation happened to cause numerous conflicts with totally legitimate products such as antiviruses, cryptographic modules and even some updates of the Windows itself, and when such a conflict occurs VB simply stops working. Users have to wait for at least a month till the new VB version is released with the proper exclusions added. Worst case is, the conflicting application or update has to be uninstalled, or VB itself has to be downgraded to the version 4.3.12 which was the latest one without hardening. Numerous requests to add a user-controlled exclusion list, or an option to disable hardening, are all left unanswered. The only reply from developers sounds like «if you don't want it build it from source code yourself». Well, looks like we'll have to.<br/>
 <br/>
-Although the build instructions are <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">described</a> on the official project Wiki, they are incomplete and somewhat outdated, while the build procedure often fails with vague error messages. So when, in the end, I got it working I thought it was worth documenting in full details in a separate article. This instruction is being updated from time to time, and at the moment it is adapted to building VB version 6.1.18. However, if you need information on building earlier versions of VB or auxiliary libraries you can always get it from the <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/">history of changes</a>.<br/></en>
+Although the build instructions are <a href="https://www.virtualbox.org/wiki/Windows%20build%20instructions">described</a> on the official project Wiki, they are incomplete and somewhat outdated, while the build procedure often fails with vague error messages. So when, in the end, I got it working I thought it was worth documenting in full details in a separate article. This instruction is being updated from time to time, and at the moment it is adapted to building VB version 6.1.46. However, if you need information on building earlier versions of VB or auxiliary libraries you can always get it from the <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/">history of changes</a>.<br/></en>
 <br/>
 <cut text="<ru>Я заинтересован</ru><en>OK, I'm in</en>" />
 <h4><img src="<%bullet%>"/> <ru>Содержание</ru><en>Table of Contents</en></h4>
@@ -68,20 +68,19 @@ Now, the following programs can only be obtained as installable distributions (a
 <ul>
 <li><b><a href="https://download.qt.io/new_archive/qt/5.6/5.6.3/single/qt-everywhere-opensource-src-5.6.3.zip">Qt 5.6.3</a></b> (<ru>исходные коды</ru><en>source code</en>)</li>
 <li><b><a href="https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/rubenvb/gcc-4.5-release/x86_64-w64-mingw32-gcc-4.5.4-release-win64_rubenvb.7z/download">MinGW-w64 4.5.4 x86_64</a></b></li>
-<li><b><a href="http://www.libsdl.org/download-1.2.php">SDL v1.2.x</a></b> (<ru>development-пакет для Visual C++</ru><en>development library for Visual C++</en>)</li>
-<li><b><a href="https://curl.haxx.se/download.html">cURL</a></b> (<ru>исходные коды</ru><en>source code</en>)</li>
-<li><b><a href="https://www.openssl.org/source/">OpenSSL 1.1.1</a></b> (<ru>исходные коды</ru><en>source code</en>)</li>
+<li><b><a href="https://www.libsdl.org/download-1.2.php">SDL v1.2.x</a></b> (<ru>development-пакет для Visual C++</ru><en>development library for Visual C++</en>)</li>
 <li><b><a href="https://sourceforge.net/projects/gsoap2/files/gsoap-2.8/">gSOAP 2.8.x</a></b> (<ru>рекомендуется 2.8.41 или выше</ru><en>version 2.8.41 or higher is recommended</en>)</li>
 <li><b><a href="https://github.com/webmproject/libvpx/releases">libvpx 1.7.0</a></b> (<ru>исходные коды; более новые версии не поддерживают VS 2010</ru><en>source code; newer versions do not support VS 2010</en>)</li>
-<li><b><a href="http://opus-codec.org/downloads/">libopus 1.3.1</a></b> (<ru>исходные коды</ru><en>source code</en>)</li>
+<li><b><a href="https://opus-codec.org/downloads/">libopus 1.3.1</a></b> (<ru>исходные коды</ru><en>source code</en>)</li>
 <li><b><a href="https://miktex.org/download">MiKTeX Portable</a></b></li>
 <li><b><a href="https://www.nasm.us/">NASM</a></b><br/><ru>Рекомендую 64-битную портативную версию.</ru><en>I recommend using the 64-bit portable version.</en></li>
-<li><b><a href="http://wixtoolset.org/">WiX</a></b><br/><ru>Рекомендую портативный набор (архив с именем вида <code>wix311-binaries.zip</code>).</ru><en>I recommend using portable archive (named like <code>wix311-binaries.zip</code>).</en></li>
+<li><b><a href="https://wixtoolset.org/">WiX</a></b><br/><ru>Рекомендую портативный набор (архив с именем вида <code>wix311-binaries.zip</code>).</ru><en>I recommend using portable archive (named like <code>wix311-binaries.zip</code>).</en></li>
+<li><b><a href="https://curl.se/windows/">cURL</a></b> (<ru>скомпилированная версия утилиты</ru><en>binary build</en>)</li>
 </ul>
 <br/>
 <ru>Также потребуются два архива:</ru><en>You will also need the following archives:</en><br/>
 <ul>
-<li><b><a href="http://www.oasis-open.org/docbook/xml/4.5/docbook-xml-4.5.zip">DocBook XML DTD 4.5</a></b></li>
+<li><b><a href="https://www.oasis-open.org/docbook/xml/4.5/docbook-xml-4.5.zip">DocBook XML DTD 4.5</a></b></li>
 <li><b><a href="https://sourceforge.net/projects/docbook/files/OldFiles/docbook-xsl-1.69.1.zip/download">DocBook XSL Stylesheets 1.69.1</a></b></li>
 </ul>
 <br/>
@@ -130,9 +129,8 @@ Now, the following programs can only be obtained as installable distributions (a
 <tr><td>MinGW-64</td><td>4.5.4</td><td><code>C:\Programs\mingw64\</code></td></tr>
 <tr><td>Cygwin</td><td>-</td><td><code>C:\Programs\cygwin64\</code></td></tr>
 <tr><td>SDL</td><td>1.2.15</td><td><code>C:\Programs\SDL\x64\</code></td></tr>
-<tr><td>cURL</td><td>7.74.0</td><td><code>C:\Programs\curl\{x32|x64}\</code></td></tr>
-<tr><td>OpenSSL</td><td>1.1.1i</td><td><code>C:\Programs\OpenSSL\{x32|x64}\</code></td></tr>
-<tr><td>gSOAP</td><td>2.8.110</td><td><code>C:\Programs\gSOAP\</code></td></tr>
+<tr><td>cURL</td><td>8.2.1</td><td><code>C:\Programs\curl\</code></td></tr>
+<tr><td>gSOAP</td><td>2.8.124</td><td><code>C:\Programs\gSOAP\</code></td></tr>
 <tr><td>libvpx</td><td>1.7.0</td><td><code>C:\Programs\libvpx\</code></td></tr>
 <tr><td>libopus</td><td>1.3.1</td><td><code>C:\Programs\libopus\</code></td></tr>
 <tr><td>MiKTeX Portable</td><td>2.9.6942</td><td><code>C:\Programs\MiKTeX\</code></td></tr>
@@ -217,6 +215,7 @@ Plugins=.
 <br/>
 <h5>• SDL</h5>
 <ol>
+<li><ru>Development-пакет для версии 1.2 на официальном сайте больше недоступен, есть ссылка только на исходные коды. Я не пробовал компилировать их самостоятельно, а продолжаю пользоваться ранее скачанной сборкой. Копия архива добавлена в репозиторий со статьёй, можно скачать его <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/blob/master/misc/SDL-devel-1.2.15-VC.zip">оттуда</a>.</ru><en>The development library for the version 1.2 is no longer available on the official web site, only the source code. I have not tried building them myself, but keep using the binary version dowloaded earlier. I added a copy of it into this article's repository, so you can get it from <a href="https://github.com/CaptainFlint/virtualbox-winbuild-article/blob/master/misc/SDL-devel-1.2.15-VC.zip">there</a>.</en></li>
 <li><ru>Распаковываем SDL в каталог <code>C:\Programs\SDL\x64\</code>.</ru><en>Unpack the SDL archive into <code>C:\Programs\SDL\x64\</code>.</en></li>
 <li><ru>Перемещаем всё содержимое <code>C:\Programs\SDL\x64\lib\x64\</code> на уровень выше (в <code>C:\Programs\SDL\x64\lib\</code>), каталоги <code>C:\Programs\SDL\x64\lib\x86</code> и <code>x64</code> удаляем.</ru><en>Move all the contents of the subdirectory <code>C:\Programs\SDL\x64\lib\x64\</code> to its parent directory (that is, into <code>C:\Programs\SDL\x64\lib\</code>), then delete the subdirectories <code>C:\Programs\SDL\x64\lib\x86</code> and <code>x64</code>.</en></li>
 </ol>
@@ -224,95 +223,8 @@ Plugins=.
 <h5>• NASM</h5>
 <ru>Распаковываем архив <code>nasm-2.14.02-win64.zip</code> в <code>C:\Programs\</code>, переименовываем полученный каталог <code>nasm-2.14.02</code> в <code>nasm</code>.</ru><en>Unpack the archive <code>nasm-2.14.02-win64.zip</code> into <code>C:\Programs\</code>, then rename the resultant directory <code>nasm-2.14.02</code> as <code>nasm</code>.</en><br/>
 <br/>
-<h5>• OpenSSL</h5>
-<ol>
-<li><ru>Для этой библиотеки нам по-прежнему нужны сборки под 32- и 64-битную архитектуру. Распаковываем архив OpenSSL два раза в каталог <code>C:\Programs\OpenSSL\</code>, переименовывая полученный подкаталог из <code>openssl-1.1.1i</code>, соответственно, в <code>openssl-1.1.1i-x32</code> и <code>openssl-1.1.1i-x64</code>.</ru><en>This library still needs to be built for both 32- and 64-bit architectures. Unpack the OpenSSL archive into <code>C:\Programs\OpenSSL\</code> twice, renaming the copies of the directory <code>openssl-1.1.1i</code> as <code>openssl-1.1.1i-x32</code> and <code>openssl-1.1.1i-x64</code>.</en></li>
-<li><ru>Открываем консоль, собираем и устанавливаем 32-битную версию:</ru><en>Open the console, build and install the 32-bit version by running:</en>
-<source lang="dos">
-"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
-COLOR 07
-set PATH=%PATH%;C:\Programs\nasm
-cd /d C:\Programs\OpenSSL\openssl-1.1.1i-x32\
-perl Configure VC-WIN32 no-shared --prefix=C:\Programs\OpenSSL\x32 --openssldir=C:\Programs\OpenSSL\x32\ssl
-nmake
-nmake test
-nmake install
-</source>
-<ru>Конфигуратор может выдать страшное сообщение, что, дескать, не может найти компилятор. Не обращайте внимания, это он слегка не в себе.<br/>
-Если вы не хотите использовать NASM, исключите отсюда модификацию переменной <code>PATH</code> и добавьте к вызову <code>Configure</code> параметр <code>no-asm</code>.</ru>
-<en>If the configure step outputs a scary warning about a missing compiler, please, disregard this message, it's lying outrageously.<br/>
-If you don't want to use NASM just skip the command with <code>PATH</code> modification, and for the <code>Configure</code> script specify the additional parameter <code>no-asm</code>.</en>
-</li>
-<li>
-<ru>Открываем новую консоль, собираем и устанавливаем 64-битную версию:</ru><en>Now open a new console window and do the same for the 64-bit version:</en>
-<source lang="dos">
-"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
-COLOR 07
-set PATH=%PATH%;C:\Programs\nasm
-cd /d C:\Programs\OpenSSL\openssl-1.1.1i-x64\
-perl Configure VC-WIN64A no-shared --prefix=C:\Programs\OpenSSL\x64 --openssldir=C:\Programs\OpenSSL\x64\ssl
-nmake
-nmake test
-nmake install
-</source>
-<ru>Отказ от NASM делается аналогично 32-битной версии.</ru><en>Disabling NASM is the same as in 32-bit.</en>
-</li>
-<li><ru>Каталоги <code>C:\Programs\OpenSSL\openssl-1.1.1i-x32</code> и <code>openssl-1.1.1i-x64</code> можно удалять.</ru><en>Now you can delete the directories <code>C:\Programs\OpenSSL\openssl-1.1.1i-x32</code> and <code>openssl-1.1.1i-x64</code>.</en></li>
-</ol>
-<br/>
 <h5>• cURL</h5>
-<ol>
-<li><ru>Как и с OpenSSL, здесь нам потребуется не только 64-битный, но и 32-битный вариант. Распаковываем архив cURL в каталог <code>C:\Programs\curl\</code>, переименовываем получившийся подкаталог из <code>curl-7.74.0</code> в <code>curl-7.74.0-x32</code>.</ru><en>Like with OpenSSL, we need the 32-bit version in addition to the 64-bit one. Unpack the cURL archive into <code>C:\Programs\curl\</code> and rename the resultant subdirectory <code>curl-7.74.0</code> into <code>curl-7.74.0-x32</code>.</en></li>
-<li>
-<ru>Открываем в редакторе файл <code>C:\Programs\curl\curl-7.74.0-x32\winbuild\MakefileBuild.vc</code>, находим там в районе строк 61–69 условный блок вида:</ru><en>Open the file <code>C:\Programs\curl\curl-7.74.0-x32\winbuild\MakefileBuild.vc</code> in a text editor, and look for the following block of code (around lines No.61–69):</en>
-<source>
-!IF "$(VC)"=="6"
-CC_NODEBUG  = $(CC) /O2 /DNDEBUG
-CC_DEBUG    = $(CC) /Od /Gm /Zi /D_DEBUG /GZ
-CFLAGS      = /I. /I../lib /I../include /nologo /W4 /wd4127 /GX /DWIN32 /YX /FD /c /DBUILDING_LIBCURL
-!ELSE
-CC_NODEBUG  = $(CC) /O2 /DNDEBUG
-CC_DEBUG    = $(CC) /Od /D_DEBUG /RTC1 /Z7 /LDd
-CFLAGS      = /I. /I ../lib /I../include /nologo /W4 /wd4127 /EHsc /DWIN32 /FD /c /DBUILDING_LIBCURL
-!ENDIF
-</source>
-<ru>и добавляем после него строчку:</ru><en>After these lines add the new directive:</en>
-<source>CFLAGS      = $(CFLAGS) /DCURL_DISABLE_LDAP</source>
-<ru>Если этого не сделать, то при сборке VB полезут ошибки линковки.</ru><en>If you don't, the build of VB will fail with link errors.</en>
-</li>
-<li>
-<ru>Открываем файл <code>C:\Programs\curl\curl-7.74.0-x32\winbuild\gen_resp_file.bat</code>, после первой строчки в нём (<code>@echo OFF</code>) вставляем команду:</ru><en>Now open the file <code>C:\Programs\curl\curl-7.74.0-x32\winbuild\gen_resp_file.bat</code>, and after the very first line (<code>@echo OFF</code>) insert this command:</en>
-<source>cd .</source>
-<ru>Это фиктивная команда, которая ничего не делает, и задача её лишь в том, чтобы сбросить код <code>ERRORLEVEL</code>. В противном случае может возникнуть ситуация, когда этот код оказывается ненулевым ещё до запуска батника, а сам батник не выполняет ни одной команды, меняющей код возврата. В результате <code>nmake</code> считает, что батник вернул ошибку, и прерывает сборку.</ru><en>It does not do anything, except resetting the <code>ERRORLEVEL</code> code. The script is so simple that it is possible for it to complete without running any command that would change the error code. So if that code happened to be non-zero before starting the script, it will keep its value on the script exit, and <code>nmake</code> would think it was the script that returned this error code, and terminate the build with failure. Adding that fake <code>cd</code> fixes the issue.</en>
-</li>
-<li><ru>Делаем копию каталога <code>curl-7.74.0-x32</code> под именем <code>curl-7.74.0-x64</code>.</ru><en>Now make a full copy of <code>curl-7.74.0-x32</code> under the name <code>curl-7.74.0-x64</code>.</en></li>
-<li><ru>Открываем консоль, собираем 32-битную версию и копируем необходимые файлы в целевой каталог:</ru><en>Open the console, build the 32-bit version and copy the files we need:</en>
-<source lang="dos">
-"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x86 /win7
-COLOR 07
-cd /d C:\Programs\curl\curl-7.74.0-x32\winbuild
-md C:\Programs\curl\x32
-nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x86 SSL_PATH=C:\Programs\OpenSSL\x32 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
-copy ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\lib\libcurl_a.lib ..\..\x32\libcurl.lib
-xcopy /E ..\builds\libcurl-vc-x86-release-static-ssl-static-ipv6\include\curl ..\..\x32\include\curl\
-</source>
-</li>
-<li>
-<ru>Собираем 64-битную версию, открыв новую консоль и выполнив команды:</ru><en>Open another console window and build the 64-bit version:</en>
-<source lang="dos">
-"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
-COLOR 07
-cd /d C:\Programs\curl\curl-7.74.0-x64\winbuild
-md C:\Programs\curl\x64
-nmake /f Makefile.vc mode=static WITH_SSL=static DEBUG=no MACHINE=x64 SSL_PATH=C:\Programs\OpenSSL\x64 ENABLE_SSPI=no ENABLE_WINSSL=no ENABLE_IDN=no
-copy ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\lib\libcurl_a.lib ..\..\x64\libcurl.lib
-xcopy /E ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\include\curl ..\..\x64\include\curl\
-copy ..\builds\libcurl-vc-x64-release-static-ssl-static-ipv6\bin\curl.exe ..\..\x64\curl.exe
-</source>
-<ru>Обратите внимание, что, в отличие от 32-битной версии, здесь мы копируем ещё и <code>curl.exe</code>, он нам потом понадобится для скачивания образа гостевых дополнений.</ru><en>Notice that in addition to what we did for the 32-bit version, here we also copy the file <code>curl.exe</code>. We'll use it later, for downloading the guest additions image.</en>
-</li>
-<li><ru>Каталоги <code>C:\Programs\curl\curl-7.74.0-x32</code> и <code>curl-7.74.0-x64</code> можно удалять.</ru><en>The directories <code>C:\Programs\curl\curl-7.74.0-x32</code> and <code>curl-7.74.0-x64</code> are no longer needed and can be removed.</en></li>
-</ol>
+<ru>Заходим в подкаталог <code>bin</code> архива cURL и копируем его содержимое (четыре файла) в каталог <code>C:\Programs\curl\</code>.</ru><en>Enter the <code>bin</code> subdirectory of the cURL archive contents, and copy the 4 files present there into <code>C:\Programs\curl\</code>.</en><br/>
 <br/>
 <h5>• libvpx</h5>
 <ol>
@@ -548,42 +460,22 @@ end sub
    CheckForOpus strOptOpus
 </source>
 </li>
-</ul>
-</li>
 <li>
-<ru>Следующий файл — <code>src\VBox\Runtime\Makefile.kmk</code>. Находим там определения переменных <code>VBoxRT_LIBS.win</code> и <code>VBoxRT-x86_LIBS.win</code> и добавляем к ним <code>crypt32.lib</code> и <code>bcrypt.lib</code>. А именно, код:</ru><en>The next file is <code>src\VBox\Runtime\Makefile.kmk</code>. We need to find the definitions of variables <code>VBoxRT_LIBS.win</code> and <code>VBoxRT-x86_LIBS.win</code>, and add two new libraries to them, <code>crypt32.lib</code> and <code>bcrypt.lib</code>. So the following code:</en>
-<source>
-VBoxRT_LIBS.win                = \
-	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/vccomsup.lib \
-	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/wbemuuid.lib \
-	$(PATH_TOOL_$(VBOX_VCC_TOOL)_LIB)/delayimp.lib
+<ru>Для сборки необходимы также библиотеки OpenSSL и cURL. Можно скомпилировать их самостоятельно, но в комплекте VBox идут специальным образом доработанные варианты этих библиотек, поэтому имеет смысл использовать их. Однако конфигуратор не рассчитан на такой сценарий и требует, чтобы библиотеки поставлялись внешние. Необходимо эту проверку отключить. Для этого в том же блоке кода, куда мы только что добавляли вызовы <code>CheckForVpx</code> и <code>CheckForOpus</code>, находим следующие строки и либо полностью удаляем их, либо комментируем, добавив в начало символ апострофа:</ru><en>Building requires libraries OpenSSL and cURL. It is possible to build them manually, but VirtualBox has pre-packaged copies of these libraries, adjusted specifically for it. Therefore, it's more preferrable to use them. However, the configure tool does not take that scenario into account and requires that external versions of the libraries were supplied. We need to disable this particular check. In the block of code where we've just been adding the <code>CheckForVpx</code> and <code>CheckForOpus</code> calls, find the following lines and either delete them, or comment them by adding the apostrophe sign at the beginning:</en>
+<source lang="vbscript">
+   CheckForSsl strOptSsl, False
+   if g_strTargetArch = "amd64" then
+       ' 32-bit openssl required as well
+       CheckForSsl strOptSsl32, True
+   end if
+   CheckForCurl strOptCurl, False
+   if g_strTargetArch = "amd64" then
+       ' 32-bit Curl required as well
+       CheckForCurl strOptCurl32, True
+   end if
 </source>
-<ru>заменяется на:</ru><en>turns into:</en>
-<source>
-VBoxRT_LIBS.win                = \
-	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/vccomsup.lib \
-	$(PATH_SDK_$(VBOX_WINDDK)_LIB)/wbemuuid.lib \
-	$(PATH_TOOL_$(VBOX_VCC_TOOL)_LIB)/delayimp.lib \
-	$(PATH_SDK_$(VBOX_WINPSDK)_LIB)/crypt32.lib \
-	$(PATH_SDK_$(VBOX_WINPSDK)_LIB)/bcrypt.lib
-</source>
-<ru>(не пропустите обратный слэш после <code>delayimp.lib</code>!); и аналогично:</ru><en>(don't miss the trailing backslash after <code>delayimp.lib</code>!); and, respectively, this block:</en>
-<source>
-VBoxRT-x86_LIBS.win                = \
-	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/vccomsup.lib \
-	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/wbemuuid.lib \
-	$(PATH_TOOL_$(VBOX_VCC_TOOL_STEM)X86_LIB)/delayimp.lib
-</source>
-<ru>заменяется на:</ru><en>becomes:</en>
-<source>
-VBoxRT-x86_LIBS.win                = \
-	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/vccomsup.lib \
-	$(PATH_SDK_$(VBOX_WINDDK)_LIB.x86)/wbemuuid.lib \
-	$(PATH_TOOL_$(VBOX_VCC_TOOL_STEM)X86_LIB)/delayimp.lib \
-	$(PATH_SDK_$(VBOX_WINPSDK)_LIB.x86)/crypt32.lib \
-	$(PATH_SDK_$(VBOX_WINPSDK)_LIB.x86)/bcrypt.lib
-</source>
-<ru>Это требуется для успешной линковки библиотеки <code>VBoxRT.dll</code>. Я не до конца разобрался в этой особенности: в дистрибутиве Oracle нет зависимости от библиотеки <code>crypt32.dll</code>, она там загружается динамически во время выполнения, поэтому, теоретически, LIB-файл добавлять не нужно. Однако если этого не сделать, линковщик не может найти некоторые функции и отказывается собирать библиотеку. Предполагаю, что это как-то связано с опциями сборки OpenSSL, но детально не разбирался, проще было добавить эту библиотеку в список. А зависимость от <code>bcrypt.dll</code> появилась при переходе на OpenSSL 1.1.1.</ru><en>This change is needed for successful linking of <code>VBoxRT.dll</code>. I'm not 100% sure why that is so, the Oracle version does not have the load-time dependency on <code>crypt32.dll</code>, it is loaded in run-time, so the LIB file should not be required. However without it the linker cannot find some functions and fails. I suspect it might be related to the OpenSSL build options, but I haven't checked this, adding the dependency is easier. And the second dependency, <code>bcrypt.dll</code>, is a requirement for the new OpenSSL 1.1.1.</en>
+</li>
+</ul>
 </li>
 <li>
 <ru>Если вы используете gSOAP версии 2.8.79 или выше, то требуется подправить файл <code>src\VBox\Runtime\r3\win\VBoxRT-openssl-1.1plus.def</code>, добавив куда-нибудь в общий список следующий набор строк:</ru><en>If you have gSOAP of version 2.8.79 or higher you'll have to edit the file <code>src\VBox\Runtime\r3\win\VBoxRT-openssl-1.1plus.def</code> and add the following lines to the exports list:</en>
@@ -613,7 +505,7 @@ VBoxRT-x86_LIBS.win                = \
 <ru>Если вы правите файлы самостоятельно, а не готовым патчем, учтите, что строки-команды должны начинаться с символа табуляции.</ru><en>If you edit the files manually instead of applying the patch, please, note that the rule commands must begin with the tabulation character.</en>
 </li>
 <li>
-<ru>Сборка документации — одно из больных мест этого проекта. До версий 6.0 с ней не было никаких проблем, а потом вдруг полезли сплошные несостыковки. Я не знаю, в каких условиях документация собирается в Oracle (возможно, они используют *NIX-подобную систему), но у меня различные компоненты то и дело теряли слэши в путях или, наоборот, получали лишние, и в итоге не могли найти нужные файлы из-за сбившихся соответствий в каталожных файлах. Методом научного тыка мне удалось в итоге подобрать комбинацию, с которой документация собралась без ошибок. В первую очередь была исправлена ошибка отсутствия одного из промежуточных целевых каталогов, из-за чего некоторые файлы не могли быть созданы. Это делается в файле <code>doc\manual\Makefile.kmk</code> в блоке кода:</ru><en>Building documentation is very fiddly. Before the version 6.0 it used to work fine without any changes. I don't know what was wrong with that, but it was significantly redesigned in such a way that it no longer works on my build system. I have no idea how Oracle themselves build the documentation (maybe on a *NIX system), but for me the build rules kept losing slashes in the paths, or adding an excess of them, and as a result they failed to find the target files because of mismatches in catalog files. I finally managed to combine some changes which allowed to build the documentation without errors. First of all, one of the target directories was missing, so some of the intermediate files could not be created. This issue is fixed in the file <code>doc\manual\Makefile.kmk</code>, inside the following code block:</en>
+<ru>Сборка документации — одно из больных мест этого проекта. До версий 6.0 с ней не было никаких проблем, а потом вдруг полезли сплошные несостыковки. В Oracle документация собирается в Linux-окружении, а сборка из Windows, видимо, не тестируется. В результате различные компоненты проекта то и дело теряли слэши в путях или, наоборот, получали лишние, и в итоге не могли найти нужные файлы из-за сбившихся соответствий в каталожных файлах. Методом научного тыка мне удалось в итоге подобрать комбинацию, с которой документация собралась без ошибок. В первую очередь была исправлена ошибка отсутствия одного из промежуточных целевых каталогов, из-за чего некоторые файлы не могли быть созданы. Это делается в файле <code>doc\manual\Makefile.kmk</code> в блоке кода:</ru><en>Building documentation is very fiddly. Before the version 6.0 it used to work fine without any changes. I don't know what was wrong with that, but it was significantly redesigned in such a way that it no longer works on my build system. Oracle themselves build the documentation on a Linux machine, and probably don't check how it works on Windows. For me the build rules kept losing slashes in the paths, or adding an excess of them, and as a result they failed to find the target files because of mismatches in catalog files. I finally managed to combine some changes which allowed me to build the documentation without errors. First of all, one of the target directories was missing, so some of the intermediate files could not be created. This issue is fixed in the file <code>doc\manual\Makefile.kmk</code>, inside the following code block:</en>
 <source>
 define def_vbox_refentry_to_user_sect1
 $$(VBOX_PATH_MANUAL_OUTBASE)/$(1)/user_$(2): $(3) \
@@ -787,7 +679,7 @@ VBOX_PATH_DOCBOOK_DTD := C:/Programs/DocBook/xml
 VBOX_PATH_HTML_HELP_WORKSHOP := "C:\Program Files (x86)\HTML Help Workshop"
 VBOX_PDFLATEX := C:\Programs\MiKTeX\texmfs\install\miktex\bin\pdflatex.exe
 VBOX_PDFLATEX_CMD := $(VBOX_PDFLATEX) -halt-on-error -interaction batchmode
-TOOL_CURL_FETCH := C:\Programs\curl\x64\curl.exe
+TOOL_CURL_FETCH := C:\Programs\curl\curl.exe
 PATH_TOOL_NASM := C:/Programs/nasm
 VBOX_INSTALLER_LANGUAGES := en_US
 VBOX_WITH_TESTCASES :=
@@ -809,7 +701,7 @@ VBOX_BUILD_PUBLISHER := _OSE
 <li><ru>Для более тонкой настройки подписывания имеется множество других переменных, с помощью которых можно задать хранилище, адрес сервера для наложения временно́й метки или вообще задать произвольный дополнительный набор аргументов для утилиты <code>signtool</code>. В файле <code>Config.kmk</code> под комментарием «Code Signing» можно посмотреть, какие там переменные определяются и как они используются.</ru><en>You can fine-tune the signing process using various additional variables and macros to redefine the certificate storage, timestamp server, or even construct a full command line for the <code>signtool</code> program. You can take a look into the file <code>Config.kmk</code> below the comment «Code Signing», there you'll find which variables are defined and how they are used.</en></li>
 <li><ru>Если вы устанавливали какие-то из программ в каталоги, отличающиеся от моих, нужно поправить пути в соответствующих переменных. Крайне желательно использовать тот же стиль слэшей (прямые/обратные), что приведён в шаблоне для каждой переменной: для некоторых из них это критично.</ru><en>If you've installed some of the programs into paths different from mine, you need to fix those paths in the template. It's strongly recommended to keep the path style for each variable (forward/backward slashes), sometimes it's critical for successful build.</en></li>
 <li><ru>Для WiX необходимо указывать путь к исполняемым файлам. В портативной версии это каталог, куда был распакован архив; в установленной версии это подкаталог <code>bin</code>. Обратите внимание, что если путь содержит пробелы, то необходимо преобразовать его в формат 8.3. Для этого можно воспользоваться командой <code>dir /x</code>. Трюк со взятием в кавычки здесь, увы, не работает.</ru><en>Fox WiX you need to specify the path to its binaries. With the portable version, it is just the directory where you unpacked it; if you used the installer, the binaries will be located in the subdirectory <code>bin</code>. Please, note, that the path must not contain spaces! If it does you have to convert it into the 8.3 format (you can use <code>dir /x</code> for that). Unfortunately, enclosing the path in quotes does not work with this variable.</en></li>
-<li><ru>Переменная <code>VBOX_BUILD_PUBLISHER</code> задаёт брэндированный суффикс в номере версии. По умолчанию это «_OSE» (т. е. продукт имеет версию «6.1.18_OSE»). Здесь вы можете поменять его на что-то другое или даже на пустую строку, чтобы убрать суффикс совсем (если переменная отсутствует, применится суффикс «_OSE»).</ru><en>The variable <code>VBOX_BUILD_PUBLISHER</code> specifies the branding suffix in the version number. By default it is «_OSE» (that is, the full product version is «6.1.18_OSE»). You can specify any other suffix here, or set it to empty to get rid of it altogether. But if you delete the variable completely, it will use the default «_OSE».</en></li>
+<li><ru>Переменная <code>VBOX_BUILD_PUBLISHER</code> задаёт брэндированный суффикс в номере версии. По умолчанию это «_OSE» (т. е. продукт имеет версию «6.1.46_OSE»). Здесь вы можете поменять его на что-то другое или даже на пустую строку, чтобы убрать суффикс совсем (если переменная отсутствует, применится суффикс «_OSE»).</ru><en>The variable <code>VBOX_BUILD_PUBLISHER</code> specifies the branding suffix in the version number. By default it is «_OSE» (that is, the full product version is «6.1.46_OSE»). You can specify any other suffix here, or set it to empty to get rid of it altogether. But if you delete the variable completely, it will use the default «_OSE».</en></li>
 </ul>
 <ru>Остальные переменные используются в основном для выбора собираемых компонентов. Ну и главная строка, ради которой всё и затевалось, идёт самой первой: отключаем hardening.</ru><en>The rest of the variables are mostly used to declare which components are to be built. And, of course, the main declaration comes at the very top: turn the hardening off.</en><br/>
 <br/>
@@ -824,16 +716,16 @@ cd /d C:\Devel\VirtualBox-src
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /Release /x64 /win7
 COLOR 07
 set BUILD_TARGET_ARCH=amd64
-cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-libSDL=C:\Programs\SDL\x64 --with-openssl=C:\Programs\OpenSSL\x64 --with-openssl32=C:\Programs\OpenSSL\x32 --with-libcurl=C:\Programs\curl\x64 --with-libcurl32=C:\Programs\curl\x32 --with-Qt5=C:\Programs\Qt\5.6.3-x64 --with-libvpx=C:\Programs\libvpx --with-libopus=C:\Programs\libopus --with-python=C:/Programs/Python
+cscript configure.vbs --with-DDK=C:\WinDDK\7600.16385.1 --with-MinGW-w64=C:\Programs\mingw64 --with-libSDL=C:\Programs\SDL\x64 --with-Qt5=C:\Programs\Qt\5.6.3-x64 --with-libvpx=C:\Programs\libvpx --with-libopus=C:\Programs\libopus --with-python=C:/Programs/Python
 env.bat
 kmk
-kmk C:/Devel/VirtualBox-src/out/win.amd64/release/bin/VirtualBox-6.1.18_OSE-r142142-MultiArch.exe
+kmk C:/Devel/VirtualBox-src/out/win.amd64/release/bin/VirtualBox-6.1.46_OSE-r158378-MultiArch.exe
 </source>
 <ru>Скрипт <code>configure.vbs</code> проверяет окружение и создаёт файлы конфигурации (<code>AutoConfig.kmk</code> и <code>env.bat</code>). Первый запуск <code>kmk</code> выполняет сборку бинарных компонентов и помещает их в каталог <code>out\win.amd64\bin\</code>. Последняя команда собирает из этих компонентов промежуточный MSI-пакет и итоговый инсталлятор. Важные моменты:</ru><en>The <code>configure.vbs</code> script verifies the environment and generates configuration files (<code>AutoConfig.kmk</code> and <code>env.bat</code>). The first <code>kmk</code> command builds the binaries and collect them into <code>out\win.amd64\bin\</code>. And the last command packs them all into the intermediate MSI package, which is then wrapped into an executable installer. Important notes:</en>
 <ul>
 <li><ru>Слэши в последней команде должны быть обязательно прямыми. С обратными <code>kmk</code> не найдёт сборочные правила.</ru><en>You must use forward slashes in the last command. With backslashes, <code>kmk</code> would fail to find the build rules.</en></li>
 <li><ru>Если вы меняли суффикс версии, то «_OSE» в имени файла инсталлятора необходимо поправить на то, что вы задали в переменной <code>VBOX_BUILD_PUBLISHER</code>.</ru><en>If you've changed the branding suffix you need to change the name of the target installer by replacing the «_OSE» with what you specified in the variable <code>VBOX_BUILD_PUBLISHER</code>.</en></li>
-<li><ru>Ревизию в имени MSI-файла (142142) можно найти в файле <code>Version.kmk</code> в определении переменной <code>VBOX_SVN_REV_VERSION_FALLBACK</code>.</ru><en>The revision number in the MSI package name (142142) can be found in the file <code>Version.kmk</code> inside the <code>VBOX_SVN_REV_VERSION_FALLBACK</code> variable definition.</en></li>
+<li><ru>Ревизию в имени MSI-файла (158378) можно найти в файле <code>Version.kmk</code> в определении переменной <code>VBOX_SVN_REV_VERSION_FALLBACK</code>.</ru><en>The revision number in the MSI package name (158378) can be found in the file <code>Version.kmk</code> inside the <code>VBOX_SVN_REV_VERSION_FALLBACK</code> variable definition.</en></li>
 </ul>
 </li>
 <li>
@@ -843,7 +735,7 @@ kmk C:/Devel/VirtualBox-src/out/win.amd64/release/bin/VirtualBox-6.1.18_OSE-r142
 <li>
 <ru>После завершения сборки бинарных компонентов (первый запуск <code>kmk</code>, без параметров) необходимо создать CAB-архив с драйверами. Для этого в VB имеется шаблон скрипта, который сборочная система к этому моменту подредактировала в соответствии с текущей задачей и положила в подкаталог <code>out\win.amd64\release\repack\</code>. Нужно перейти туда и запустить следующую команду:</ru><en>After all the binary components have been built (that is, after the first <code>kmk</code> run which was without arguments), you need to create a CAB archive with the drivers. There is a batch script template for that; the build system modifies it according to the current task and puts it into <code>out\win.amd64\release\repack\</code>. Go into this path and run the following command:</en>
 <source lang="dos">PackDriversForSubmission.cmd -x</source>
-<ru>По завершении работы скрипта в этом же каталоге появится файл с именем вида <code>VBoxDrivers-6.1.18r142142-amd64.cab</code>.</ru><en>When the script finishes, the file <code>VBoxDrivers-6.1.18r142142-amd64.cab</code> will appear in the same directory.</en>
+<ru>По завершении работы скрипта в этом же каталоге появится файл с именем вида <code>VBoxDrivers-6.1.46r158378-amd64.cab</code>.</ru><en>When the script finishes, the file <code>VBoxDrivers-6.1.46r158378-amd64.cab</code> will appear in the same directory.</en>
 </li>
 <li><ru>Полученный CAB-архив нужно подписать EV-сертификатом. Затем на портале Microsoft Hardware Dev Center создаётся новая заявка, загружается этот подписанный архив, выбирается желаемая целевая система (обязательно 64-битная), и заявка отправляется на выполнение.</ru><en>You need to sign this CAB archive with your EV certificate. Then go to the Microsoft Hardware Dev Center, create a new submission, upload your signed archive, select the desired target OS version (make sure it's 64-bit) and send the submission.</en></li>
 <li><ru>Через несколько минут система должна выдать ZIP-архив, в котором драйверы в дополнение к имеющейся подписи имеют подпись Microsoft, а CAT-файлы сгенерированы заново. Этот архив скачивается и помещается куда-нибудь, где у сборочной системы будет к нему доступ.</ru><en>It will take several minutes to process, after which you will have a ZIP archive where all the drivers have been signed by Microsoft in addition to your signature, and all the CAT files generated anew. Download this archive and place it somewhere so that the build system had access to it.</en></li>
@@ -880,7 +772,7 @@ UnpackBlessedDrivers.cmd -n -i path\to\signed.zip
 <br/>
 <ru>Огромное количество аспектов сборочной системы VB осталось за кадром: как из-за нежелания раздувать текст, так и по причине моей лени, когда, найдя какой-то обходной путь для очередной проблемы, я не лез в глубины системы сборки, а поскорее переходил к следующему этапу. В конце концов, моей главной задачей было не найти оптимальный путь, а собрать, наконец, свой вариант актуального VirtualBox'а: сидеть на 4.3.12 уже поднадоело, но я не мог обновлять один из своих основных рабочих инструментов на нечто, что в любой момент может просто отказаться работать на неопределённый срок. Правда, по мере выхода новых версий я иногда узнаю о каких-нибудь новых возможностях сборочной системы и, опробовав их, добавляю соответствующую информацию в статью.<br/></ru><en>A vast amount of details about VB build system had to remain behind the scene; for I have both felt reluctant to bloat the text, and, sometimes, was too lazy to go look for a different, more efficient approach of solving a problem. After all, my main aim, initially, was to get myself a working build of the current VirtualBox version. 4.3.12 had already been way outdated by that time, but I could not risk updating one of my most actively used tool to the hardened version which might simply stop working at any moment. Although, from time to time I do get back and, having found something new, add it to this article.<br/></en>
 <ru><br/></ru><en><br/></en>
-<ru>Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Для тех, кому лень поднимать всё вышеописанное нагромождение программ, но интересно расковырять получающийся в итоге дистрибутив, я выложил инсталлятор на Яндекс-диск: <a href="https://disk.yandex.ru/d/StmqqNn3dLDcFQ">6.1.18</a>. Все драйверы в них (да и остальные файлы) подписаны недоверенным сертификатом, так что в 64-битной Windows этот вариант VB заработает только в тестовом режиме. Если имеются вопросы, пожелания, предложения — велкам в комментарии или в личку. И да пребудет с вами Open Source!<br/></ru><en>I do hope this article will find its audience. If you are interested to see and analyze the final result but don't want to set up all the pile of programs, you can get my version of the distribution from here: <a href="https://disk.yandex.ru/d/StmqqNn3dLDcFQ">version 6.1.18</a>. All the drivers (and other files) are signed with an untrusted self-signed certificate, so for installing this in the 64-bit Windows version you will have to reboot into the test mode. If you have any questions, suggestions, recommendations, please, feel free to write to me either here in comments, or via personal messages. May the Open Source be with you!<br/></en>
+<ru>Надеюсь всё же, что, несмотря на недостатки, эта статья окажется кому-нибудь полезной. Для тех, кому лень поднимать всё вышеописанное нагромождение программ, но интересно расковырять получающийся в итоге дистрибутив, я выложил инсталлятор на Яндекс-диск: <a href="https://disk.yandex.ru/d/gtqwdRHKJxIXdQ">6.1.46</a>. Все драйверы в них (да и остальные файлы) подписаны недоверенным сертификатом, так что в 64-битной Windows этот вариант VB заработает только в тестовом режиме. Если имеются вопросы, пожелания, предложения — велкам в комментарии или в личку. И да пребудет с вами Open Source!<br/></ru><en>I do hope this article will find its audience. If you are interested to see and analyze the final result but don't want to set up all the pile of programs, you can get my version of the distribution from here: <a href="https://disk.yandex.ru/d/gtqwdRHKJxIXdQ">version 6.1.46</a>. All the drivers (and other files) are signed with an untrusted self-signed certificate, so for installing this in the 64-bit Windows version you will have to reboot into the test mode. If you have any questions, suggestions, recommendations, please, feel free to write to me either here in comments, or via personal messages. May the Open Source be with you!<br/></en>
 <br/>
 <anchor>history</anchor><h4><img src="<%bullet%>"/> <ru>Дополнения</ru><en>Amendments</en></h4><br/>
 <spoiler title="<ru>Архив</ru><en>Archive</en>">
@@ -977,7 +869,6 @@ UnpackBlessedDrivers.cmd -n -i path\to\signed.zip
 <li><ru>Актуализированы версии cURL, gSOAP; откат DocBook XSL Stylesheets к версии 1.69.1 (точнее соответствующей структуре документации).</ru><en>cURL and gSOAP were updated; DocBook XSL Stylesheets were downgraded to the version 1.69.1 (the documentation is better suited to that version).</en></li>
 <li><ru>Батник для сборки вынесен из текста статьи в загружаемый файл.</ru><en>The full build batch was split from the article text into a downloadable file.</en></li>
 </ol>
-</spoiler>
 <br/>
 <h5>• <ru>Обновление статьи от</ru><en>Update of</en> 8.04.2019</h5>
 <ol>
@@ -987,6 +878,7 @@ UnpackBlessedDrivers.cmd -n -i path\to\signed.zip
 <li><ru>Актуализированы версии cURL, OpenSSL, gSOAP и некоторые утилиты.</ru><en>cURL, OpenSSL, gSOAP, and some tools were updated.</en></li>
 <li><ru>Батник для сборки больше не привязан к конкретному пути проета, а также включает в себя базовый шаблон для автоматизации Win10-подписывания.</ru><en>The full build batch no longer has to be placed at the specific path. Also, it now contains the basic template for automated Windows 10 drivers signing.</en></li>
 </ol>
+</spoiler>
 <br/>
 <h5>• <ru>Обновление статьи от</ru><en>Update of</en> 17.02.2021</h5>
 <ol>
@@ -998,5 +890,13 @@ UnpackBlessedDrivers.cmd -n -i path\to\signed.zip
 <ol>
 <li><ru>Внесены уточнения с учётом изменений в VB 6.1.18.</ru><en>The article is updated for VB 6.1.18.</en></li>
 <li><ru>Удалены инструкции по сборке неиспользуемых 32-битных библиотек.</ru><en>Removed the instructions about building 32-bit libraries.</en></li>
-<li><ru>Актуализированы версии cURL, OpenSSL, gSOAP, libopus.</ru><en>cURL, OpenSSL, gSOAP, libopus.</en></li>
+<li><ru>Актуализированы версии cURL, OpenSSL, gSOAP, libopus.</ru><en>Updated versions of cURL, OpenSSL, gSOAP, libopus.</en></li>
+</ol>
+<br/>
+<h5>• <ru>Обновление статьи от</ru><en>Update of</en> 10.08.2023</h5>
+<ol>
+<li><ru>Внесены уточнения с учётом изменений в VB 6.1.46.</ru><en>The article is updated for VB 6.1.46.</en></li>
+<li><ru>Переход на использование комплектных библиотек OpenSSL и cURL вместо внешних (благодарю <a href="https://github.com/SquallATF">SquallATF</a> за указание на такую возможность).</ru><en>Switched to using pre-packaged libraries OpenSSL and cURL instead of external ones (thanks to <a href="https://github.com/SquallATF">SquallATF</a> for pointing that out).</en></li>
+<li><ru>В проект добавлен архив пакета SDL, более недоступного на официальном сайте.</ru><en>The SDL package added to this article's repository, since it's no longer available on the official web site.</en></li>
+<li><ru>Актуализирована версия gSOAP.</ru><en>Updated version of gSOAP.</en></li>
 </ol>
